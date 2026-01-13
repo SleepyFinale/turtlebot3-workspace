@@ -4,30 +4,40 @@ This workspace contains editable TurtleBot3 packages for ROS 2 Humble, configure
 
 ## Quick Start
 
+**IMPORTANT**: Make sure `ROS_DOMAIN_ID` is set (see Prerequisites above). If not set, run:
+```bash
+export ROS_DOMAIN_ID=30
+```
+
 **On Robot:**
 ```bash
+export ROS_DOMAIN_ID=30  # If not in ~/.bashrc
 ros2 launch turtlebot3_bringup robot.launch.py
 ```
 
 **On Computer (4 terminals, start in order, wait between steps):**
 
+**Setup (run in each terminal):**
+```bash
+export ROS_DOMAIN_ID=30  # If not in ~/.bashrc
+source /opt/ros/humble/setup.bash
+export TURTLEBOT3_MODEL=burger
+```
+
 1. **SLAM Toolbox** (wait 20-30s):
    ```bash
-   source /opt/ros/humble/setup.bash
-   export TURTLEBOT3_MODEL=burger
    ros2 launch slam_toolbox online_async_launch.py
    ```
 
 2. **Nav2** (wait 20-30s after SLAM):
    ```bash
-   source /opt/ros/humble/setup.bash
-   export TURTLEBOT3_MODEL=burger
    ros2 launch turtlebot3_navigation2 navigation2.launch.py
    ```
 
 3. **Explorer**:
    ```bash
    cd ~/turtlebot3_ws
+   source install/setup.bash
    ./start_explorer_simple.sh
    ```
 
@@ -46,6 +56,37 @@ sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
 sudo apt install ros-humble-slam-toolbox
 ```
+
+### Important: Set ROS_DOMAIN_ID
+
+**CRITICAL**: ROS 2 uses `ROS_DOMAIN_ID` to separate different robot networks. Both your robot and computer must use the **same** `ROS_DOMAIN_ID` value, otherwise they won't see each other's topics.
+
+**Set it once (recommended - add to `~/.bashrc`):**
+
+**On Robot:**
+```bash
+echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
+source ~/.bashrc
+```
+
+**On Computer:**
+```bash
+echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Or set it manually in each terminal session:**
+```bash
+export ROS_DOMAIN_ID=30
+```
+
+**Verify it's set:**
+```bash
+echo $ROS_DOMAIN_ID
+```
+Should show `30` (or your chosen value).
+
+**Note**: If `ROS_DOMAIN_ID` is not set, it defaults to 0. Make sure both robot and computer use the same value!
 
 ## Setup Instructions
 
@@ -110,10 +151,25 @@ Or use the provided build script:
 
 ## Setup (Run once per terminal session)
 
+**IMPORTANT**: Set `ROS_DOMAIN_ID` first (must match robot's value):
+
 ```bash
+export ROS_DOMAIN_ID=30  # Use same value as robot!
 source /opt/ros/humble/setup.bash
 export TURTLEBOT3_MODEL=burger
 ```
+
+**To make permanent** (so you don't need to set it each time):
+```bash
+echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Verify it's set:**
+```bash
+echo $ROS_DOMAIN_ID
+```
+Should show `30` (or your chosen value).
 
 ---
 
@@ -257,17 +313,34 @@ export TURTLEBOT3_MODEL=burger
 ros2 launch slam_toolbox online_async_launch.py
 ```
 
-**Wait 20-30 seconds** for SLAM to initialize.
+You should see:
+```
+[INFO] [slam_toolbox]: Node using stack size 40000000
+[INFO] [slam_toolbox]: Using solver plugin solver_plugins::CeresSolver
+[INFO] [slam_toolbox]: Registering sensor: [Custom Described Lidar]
+```
+
+**Wait 20-30 seconds** for SLAM to initialize and start publishing the map.
+
+**What's happening:**
+- SLAM Toolbox is receiving scan data and processing it
+- It needs several scan messages before it can create and publish a map
+- The `/map` topic won't appear until SLAM has processed enough data
 
 **Verify it's working:**
-- Check `/map` topic exists: `ros2 topic list | grep "^/map$"`
-- Check map is publishing: `ros2 topic echo /map --once` (wait a few seconds)
-- Check TF: `ros2 run tf2_ros tf2_echo map odom` (should show transform after initialization)
+- Check scan is being received: `ros2 topic echo /scan --once` (should show data)
+- Wait 20-30 seconds, then check `/map` topic: `ros2 topic list | grep "^/map$"`
+- Once `/map` appears, check it's publishing: `ros2 topic echo /map --once` (may need to wait a few more seconds)
+- Check TF: `ros2 run tf2_ros tf2_echo map odom` (should show transform after map is published)
 
-**If map isn't publishing:**
-- Make sure robot is providing scan data
-- Try moving robot slightly to help SLAM initialize
+**If map isn't publishing after 30 seconds:**
+- Make sure robot is providing scan data: `ros2 topic hz /scan` (should show ~10 Hz)
+- Try moving robot slightly to help SLAM initialize:
+  ```bash
+  ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
+  ```
 - Wait longer (SLAM needs several scan messages to start)
+- Check SLAM node is running: `ros2 node list | grep slam`
 
 ### Step 3: Start Nav2 (On Computer - Terminal 2)
 
@@ -428,17 +501,51 @@ ros2 run explore_lite explore --ros-args \
     --params-file src/m-explore-ros2/explore/config/params.yaml
 ```
 
-#### 4. No Map Appearing in SLAM
+#### 4. No Map Appearing in SLAM (`/map` topic doesn't exist or not publishing)
 
-**Cause**: SLAM Toolbox not receiving scan data or not initialized.
+**Cause**: SLAM Toolbox not receiving scan data, not initialized yet, or needs more time.
+
+**Symptoms**:
+- `/map` topic doesn't appear in `ros2 topic list`
+- `/map` topic exists but `ros2 topic echo /map --once` shows "does not appear to be published yet"
 
 **Solution**:
-1. Check scan data: `ros2 topic echo /scan --once` (should show laser data)
-2. Move robot slightly to help SLAM initialize
-3. Wait 20-30 seconds after starting SLAM
-4. Check map: `ros2 topic echo /map --once` (wait a few seconds)
+1. **Check scan data is available**: 
+   ```bash
+   ros2 topic echo /scan --once
+   ```
+   Should show laser scan data. If not, check robot connection.
 
-**Verify**: `ros2 topic hz /scan` - should show ~10 Hz (depends on lidar)
+2. **Check scan frequency**:
+   ```bash
+   ros2 topic hz /scan
+   ```
+   Should show ~10 Hz (depends on lidar). If 0 Hz, scan isn't publishing.
+
+3. **Move robot slightly** to help SLAM initialize:
+   ```bash
+   ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
+   ```
+
+4. **Wait longer**: SLAM needs 20-30 seconds AND several scan messages before publishing map
+   - The `/map` topic won't appear until SLAM has processed enough scans
+   - This is normal - be patient!
+
+5. **Verify SLAM is running**:
+   ```bash
+   ros2 node list | grep slam
+   ```
+   Should show `async_slam_toolbox_node`
+
+6. **Check SLAM logs** for errors in the terminal where you launched it
+
+**Note**: It's normal for `/map` to not appear immediately. SLAM Toolbox needs to:
+- Receive scan data
+- Process several scans
+- Build initial map
+- Then start publishing `/map` topic
+
+This typically takes 20-40 seconds from when SLAM starts.
 
 #### 5. Robot Not Moving / Explorer Not Finding Frontiers
 
@@ -453,19 +560,53 @@ ros2 run explore_lite explore --ros-args \
 
 #### 6. ROS_DOMAIN_ID Mismatch (Topics Not Visible)
 
-**Cause**: Robot and computer using different ROS_DOMAIN_ID values.
+**Cause**: Robot and computer using different ROS_DOMAIN_ID values, or ROS_DOMAIN_ID not set.
+
+**Symptoms**:
+- Topics from robot not visible on computer (or vice versa)
+- `ros2 topic list` shows different topics on robot vs computer
+- Nodes can't see each other
 
 **Solution**:
-1. Check on robot: `echo $ROS_DOMAIN_ID`
-2. Check on computer: `echo $ROS_DOMAIN_ID`
-3. Set same value on both (default is 0 if not set):
+1. **Check current value on robot:**
    ```bash
-   export ROS_DOMAIN_ID=0
+   echo $ROS_DOMAIN_ID
    ```
-4. Add to `~/.bashrc` to make permanent:
+   If empty, it defaults to 0.
+
+2. **Check current value on computer:**
    ```bash
-   echo "export ROS_DOMAIN_ID=0" >> ~/.bashrc
+   echo $ROS_DOMAIN_ID
    ```
+
+3. **Set same value on both** (use 30 if that's what you're using):
+   ```bash
+   export ROS_DOMAIN_ID=30
+   ```
+
+4. **Make it permanent** (so you don't need to set it each terminal):
+   ```bash
+   echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
+   source ~/.bashrc
+   ```
+   Do this on **both robot and computer**.
+
+5. **Restart terminals** or source bashrc:
+   ```bash
+   source ~/.bashrc
+   ```
+
+6. **Verify both match:**
+   ```bash
+   # On robot
+   echo $ROS_DOMAIN_ID
+   
+   # On computer  
+   echo $ROS_DOMAIN_ID
+   ```
+   Both should show the same value (e.g., `30`).
+
+**Note**: If `ROS_DOMAIN_ID` is not set, ROS 2 defaults to 0. Make sure both robot and computer explicitly set the same value!
 
 ### Diagnostic Commands
 
@@ -509,7 +650,7 @@ If nothing is working, go through this checklist:
 - [ ] Waited 20-30 seconds after starting Nav2
 - [ ] TF tree is complete: `ros2 run tf2_ros tf2_echo map base_link` (no errors)
 - [ ] Explorer is running and waiting/started
-- [ ] ROS_DOMAIN_ID matches on robot and computer
+- [ ] ROS_DOMAIN_ID matches on robot and computer: `echo $ROS_DOMAIN_ID` (should show same value on both)
 
 **Remember**: The system needs 60-90 seconds total to fully initialize. Be patient!
 

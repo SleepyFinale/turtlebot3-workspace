@@ -8,6 +8,13 @@ echo "Nav2 Safe Launcher"
 echo "=========================================="
 echo ""
 
+# Set ROS_DOMAIN_ID if not already set (defaults to 0 if not set)
+if [ -z "$ROS_DOMAIN_ID" ]; then
+    export ROS_DOMAIN_ID=30
+    echo "Note: ROS_DOMAIN_ID not set, using default: 30"
+    echo "  To make permanent, add to ~/.bashrc: export ROS_DOMAIN_ID=30"
+fi
+
 # Source ROS 2
 if [ -f /opt/ros/humble/setup.bash ]; then
     source /opt/ros/humble/setup.bash
