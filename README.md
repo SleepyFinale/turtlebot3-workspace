@@ -31,7 +31,11 @@ export TURTLEBOT3_MODEL=burger
 
 2. **Nav2** (wait 20-30s after SLAM):
    ```bash
-   ros2 launch turtlebot3_navigation2 navigation2.launch.py
+   # Use custom launch file to avoid loading default test map (use SLAM's live map instead)
+   cd ~/turtlebot3_ws
+   source /opt/ros/humble/setup.bash
+   export TURTLEBOT3_MODEL=burger
+   ros2 launch src/turtlebot3/turtlebot3_navigation2/launch/navigation2_slam.launch.py
    ```
 
 3. **Explorer**:
@@ -52,10 +56,44 @@ Before proceeding, ensure you have the following installed:
 ```bash
 sudo apt update
 sudo apt install git
+sudo apt install python3-colcon-common-extensions
+
+# Core ROS 2 navigation packages
 sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
 sudo apt install ros-humble-slam-toolbox
+
+# Additional dependencies for building Navigation2 from source
+sudo apt install ros-humble-backward-ros
+sudo apt install ros-humble-nav2-common
+sudo apt install ros-humble-nav2-msgs
+sudo apt install ros-humble-nav2-costmap-2d
+sudo apt install ros-humble-nav2-core
+sudo apt install ros-humble-nav2-util
+sudo apt install ros-humble-nav2-lifecycle-manager
+sudo apt install ros-humble-nav2-map-server
+sudo apt install ros-humble-nav2-amcl
+sudo apt install ros-humble-nav2-controller
+sudo apt install ros-humble-nav2-planner
+sudo apt install ros-humble-nav2-recoveries
+sudo apt install ros-humble-nav2-bt-navigator
+sudo apt install ros-humble-nav2-behaviors
+sudo apt install ros-humble-nav2-velocity-smoother
 ```
+
+**Quick install script** (installs all dependencies):
+```bash
+cd ~/turtlebot3_ws
+./install_dependencies.sh
+```
+
+**Note**: If you're building Navigation2 from source in your workspace, you may need these dependencies. If you're using system packages, the core packages above should be sufficient.
+
+**If build fails with missing dependencies**, run:
+```bash
+./install_dependencies.sh
+```
+Then rebuild the workspace.
 
 ### Important: Set ROS_DOMAIN_ID
 
@@ -90,6 +128,34 @@ Should show `30` (or your chosen value).
 
 ## Setup Instructions
 
+### Quick Rebuild (If You've Made Changes)
+
+If you've modified packages or want to rebuild everything:
+
+**Option 1: Use the rebuild script** (easiest):
+```bash
+cd ~/turtlebot3_ws
+./rebuild_workspace.sh
+```
+
+**Option 2: Manual rebuild**:
+```bash
+cd ~/turtlebot3_ws
+source /opt/ros/humble/setup.bash
+
+# Clean rebuild (recommended for first time or major changes)
+rm -rf build install log
+colcon build --symlink-install
+
+# Or incremental rebuild (faster)
+colcon build --symlink-install
+
+# Source the workspace
+source install/setup.bash
+```
+
+---
+
 ### 1. Clone the TurtleBot3 Packages
 
 Navigate to the src directory and clone the required packages:
@@ -119,13 +185,42 @@ Install colcon build tools if needed:
 sudo apt install python3-colcon-common-extensions
 ```
 
-Build the workspace:
+**First-time build:**
 ```bash
 cd ~/turtlebot3_ws
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install
 source install/setup.bash
 ```
+
+**Rebuild everything** (if you've made changes or want a clean build):
+```bash
+cd ~/turtlebot3_ws
+source /opt/ros/humble/setup.bash
+
+# Option 1: Clean rebuild (removes build and install directories)
+rm -rf build install log
+colcon build --symlink-install
+
+# Option 2: Just rebuild (faster, keeps existing build artifacts)
+colcon build --symlink-install
+
+# After building, source the workspace
+source install/setup.bash
+```
+
+**Rebuild specific package** (faster if you only changed one package):
+```bash
+cd ~/turtlebot3_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-select <package_name>
+source install/setup.bash
+```
+
+**Common packages to rebuild:**
+- `turtlebot3_navigation2` - if you modified launch files or parameters
+- `explore_lite` - if you modified exploration code
+- `turtlebot3_node` - if you modified robot node code
 
 ### 4. Build Explore Lite
 
@@ -344,21 +439,85 @@ You should see:
 
 ### Step 3: Start Nav2 (On Computer - Terminal 2)
 
+**When using SLAM Toolbox**, you have two options:
+
+**Option A: Use SLAM's live map (Recommended for exploration)**
+```bash
+cd ~/turtlebot3_ws
+source /opt/ros/humble/setup.bash
+export TURTLEBOT3_MODEL=burger
+# Use custom launch file that doesn't load static map (works directly from source)
+ros2 launch src/turtlebot3/turtlebot3_navigation2/launch/navigation2_slam.launch.py
+```
+
+This uses a custom launch file that doesn't load the default static map, so you'll only see SLAM's live map.
+
+**Option B: Use default static map (if you have a saved map)**
 ```bash
 source /opt/ros/humble/setup.bash
 export TURTLEBOT3_MODEL=burger
 ros2 launch turtlebot3_navigation2 navigation2.launch.py
 ```
 
+**Note**: If you see two maps in RViz (default test map + SLAM map), use Option A or hide the static map display in RViz.
+
 **Wait 20-30 seconds** for Nav2 to fully initialize.
+
+You may see warnings like:
+```
+[WARN] [amcl]: AMCL cannot publish a pose or update the transform. Please set the initial pose...
+[WARN] [amcl]: Waiting for map....
+[WARN] [global_costmap.global_costmap]: Sensor origin at (-0.03, -0.00) is out of map bounds...
+```
+
+**These are normal** and will be resolved after you:
+1. Wait for SLAM to publish the map (20-30 seconds)
+2. Set the initial pose (see below)
+
+The "sensor origin out of map bounds" warning happens because Nav2 doesn't know where the robot is on the map yet. Once you set the initial pose, this will be resolved.
 
 **Verify it's working:**
 - Check Nav2 nodes: `ros2 node list | grep nav2`
 - Check costmap: `ros2 topic list | grep costmap`
-- Check TF tree: `ros2 run tf2_ros tf2_echo map base_link` (should work without errors)
+- Check TF tree: `ros2 run tf2_ros tf2_echo map base_link` (may not work until initial pose is set)
+
+**Set Initial Pose (REQUIRED):**
+
+AMCL (localization) needs to know where the robot is on the map. Set it using RViz:
+
+1. **If RViz opened automatically** (from turtlebot3_navigation2 launch):
+   - Click the "2D Pose Estimate" button in RViz toolbar (or press `P`)
+   - Click on the map where the robot is located
+   - Drag to set the robot's orientation (which way it's facing)
+
+2. **If RViz didn't open**, launch it:
+   ```bash
+   ros2 run rviz2 rviz2
+   ```
+   Then:
+   - Add "Map" display (topic: `/map`)
+   - Add "TF" display
+   - Add "LaserScan" display (topic: `/scan`)
+   - Click "2D Pose Estimate" button
+   - Click on map where robot is located and drag for orientation
+
+3. **Alternative: Set via command line:**
+   ```bash
+   ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped '{header: {frame_id: "map"}, pose: {pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}}'
+   ```
+   Adjust x, y, z, w values to match robot's actual position.
+
+**After setting initial pose:**
+- The AMCL warning should stop
+- The "sensor origin out of map bounds" warnings should stop
+- TF transform `map -> odom` should work: `ros2 run tf2_ros tf2_echo map base_link`
+- Nav2 should be ready for navigation
+
+**Important**: When setting the initial pose, click on the map where the robot **actually is**. If the robot is at the origin (0, 0), click near the center of the map. If the robot is elsewhere, click at that location on the map.
 
 **If you get TF errors:**
 - Make sure SLAM Toolbox is running and has initialized (Step 2)
+- Make sure initial pose is set (see above)
 - Wait longer - Nav2 needs the map and TF tree to be ready
 - Check: `ros2 run tf2_ros tf2_monitor` (should show map, odom, base_link frames)
 
@@ -438,6 +597,8 @@ After starting all terminals, verify each step:
 ### After Step 3 (Nav2 - wait 20-30s):
 - [ ] Nav2 nodes running: `ros2 node list | grep nav2`
 - [ ] Costmap topics exist: `ros2 topic list | grep costmap`
+- [ ] **Initial pose set in RViz** (click "2D Pose Estimate" button)
+- [ ] AMCL warning stopped (no more "Please set the initial pose" warnings)
 - [ ] TF tree complete: `ros2 run tf2_ros tf2_echo map base_link` (no errors)
 - [ ] RViz shows map and robot (if using turtlebot3_navigation2)
 
@@ -459,20 +620,84 @@ After starting all terminals, verify each step:
 
 ### Common Issues and Solutions
 
-#### 1. TF Errors: "Invalid frame ID 'odom' passed to canTransform"
+#### 1. Costmap Warnings: "Sensor origin is out of map bounds"
 
-**Cause**: Nav2 started before SLAM Toolbox initialized, or odometry isn't publishing.
+**Cause**: Nav2 doesn't know where the robot is on the map yet, so it can't determine if the sensor is within map bounds.
+
+**Symptoms**:
+```
+[WARN] [global_costmap.global_costmap]: Sensor origin at (-0.03, -0.00) is out of map bounds (0.00, 0.00) to (4.98, 4.98)
+```
 
 **Solution**:
-1. Stop Nav2 (Ctrl+C)
-2. Verify SLAM Toolbox is running: `ros2 node list | grep slam`
-3. Wait 20-30 seconds for SLAM to initialize
-4. Check TF tree: `ros2 run tf2_ros tf2_echo map odom` (should work)
-5. Restart Nav2
+1. **Set the initial pose** in RViz (see "Set Initial Pose" section above)
+2. Once AMCL knows where the robot is, the warnings will stop
+3. Make sure SLAM has published the map first: `ros2 topic echo /map --once`
 
-**Prevention**: Always wait 20-30 seconds after starting SLAM before starting Nav2.
+**Note**: This warning is normal and expected until you set the initial pose. It doesn't prevent Nav2 from working, but you should set the initial pose to resolve it.
 
-#### 2. Odometry Not Publishing (`/odom` topic exists but no data)
+#### 2. Two Maps Showing in RViz (Default Test Map + SLAM Map)
+
+**Cause**: Nav2 is loading a default static map file, and SLAM Toolbox is also publishing its live map. Both appear in RViz.
+
+**Solution**:
+1. **Option A: Use custom launch file without static map** (recommended for SLAM):
+   ```bash
+   # First time: rebuild to install the launch file
+   cd ~/turtlebot3_ws
+   colcon build --packages-select turtlebot3_navigation2
+   source install/setup.bash
+   
+   # Then launch
+   ros2 launch src/turtlebot3/turtlebot3_navigation2/launch/navigation2_slam.launch.py
+   ```
+   This uses a custom launch file that doesn't load the default static map, so you'll only see SLAM's live map.
+
+2. **Option B: Hide static map in RViz**:
+   - In RViz, find the "Map" display (there may be two)
+   - Disable/hide the one showing the default test map
+   - Keep the one showing the live SLAM map
+
+3. **Option C: Use only SLAM map**:
+   - In RViz, remove the Map display that's showing the static map
+   - Keep only the Map display subscribed to `/map` (from SLAM Toolbox)
+
+**Note**: When doing SLAM/exploration, you typically want to use the live map from SLAM Toolbox, not a static map file.
+
+#### 3. AMCL Warning: "AMCL cannot publish a pose or update the transform. Please set the initial pose..."
+
+**Cause**: AMCL (localization) doesn't know where the robot is on the map yet.
+
+**Solution**:
+1. **Open RViz** (if not already open from Nav2 launch)
+2. **Click "2D Pose Estimate" button** in RViz toolbar (or press `P`)
+3. **Click on the map** where the robot is actually located
+4. **Drag to set orientation** (which direction the robot is facing)
+
+The warning should stop and AMCL will start localizing the robot.
+
+**Alternative (command line):**
+```bash
+ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped \
+  '{header: {frame_id: "map"}, pose: {pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}}'
+```
+Adjust x, y, z, w values to match robot's actual position.
+
+#### 4. TF Errors: "Invalid frame ID 'odom' passed to canTransform"
+
+**Cause**: Nav2 started before SLAM Toolbox initialized, or odometry isn't publishing, or initial pose not set.
+
+**Solution**:
+1. **Set initial pose first** (see issue #1 above)
+2. Stop Nav2 (Ctrl+C)
+3. Verify SLAM Toolbox is running: `ros2 node list | grep slam`
+4. Wait 20-30 seconds for SLAM to initialize
+5. Check TF tree: `ros2 run tf2_ros tf2_echo map odom` (should work)
+6. Restart Nav2 and set initial pose again
+
+**Prevention**: Always wait 20-30 seconds after starting SLAM before starting Nav2, and set initial pose after Nav2 starts.
+
+#### 5. Odometry Not Publishing (`/odom` topic exists but no data)
 
 **Cause**: Odometry needs robot movement to initialize, or parameters not loaded.
 
@@ -486,7 +711,7 @@ After starting all terminals, verify each step:
 
 **Check**: `ros2 topic list | grep odom` - topic should exist and be publishing data.
 
-#### 3. Explorer Waiting for Costmap
+#### 6. Explorer Waiting for Costmap
 
 **Cause**: Nav2 costmap hasn't initialized yet (normal - takes 20-40 seconds).
 
@@ -501,7 +726,7 @@ ros2 run explore_lite explore --ros-args \
     --params-file src/m-explore-ros2/explore/config/params.yaml
 ```
 
-#### 4. No Map Appearing in SLAM (`/map` topic doesn't exist or not publishing)
+#### 7. No Map Appearing in SLAM (`/map` topic doesn't exist or not publishing)
 
 **Cause**: SLAM Toolbox not receiving scan data, not initialized yet, or needs more time.
 
@@ -547,7 +772,7 @@ ros2 run explore_lite explore --ros-args \
 
 This typically takes 20-40 seconds from when SLAM starts.
 
-#### 5. Robot Not Moving / Explorer Not Finding Frontiers
+#### 8. Robot Not Moving / Explorer Not Finding Frontiers
 
 **Cause**: System still initializing, or map too small.
 
@@ -558,7 +783,7 @@ This typically takes 20-40 seconds from when SLAM starts.
 4. Check Nav2: `ros2 service list | grep lifecycle` (should see Nav2 services)
 5. Wait for map to build - explorer needs some map data before finding frontiers
 
-#### 6. ROS_DOMAIN_ID Mismatch (Topics Not Visible)
+#### 9. ROS_DOMAIN_ID Mismatch (Topics Not Visible)
 
 **Cause**: Robot and computer using different ROS_DOMAIN_ID values, or ROS_DOMAIN_ID not set.
 
