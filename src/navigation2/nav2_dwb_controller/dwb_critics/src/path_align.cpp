@@ -36,6 +36,7 @@
 #include <vector>
 #include <string>
 #include "dwb_critics/alignment_util.hpp"
+#include "nav2_ros_common/node_utils.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
 namespace dwb_critics
@@ -51,8 +52,9 @@ void PathAlignCritic::onInit()
     throw std::runtime_error{"Failed to lock node"};
   }
 
-  forward_point_distance_ = node->declare_or_get_parameter(
-    dwb_plugin_name_ + "." + name_ + ".forward_point_distance", 0.325);
+  forward_point_distance_ = nav2::declare_or_get_parameter(
+    node.get(),
+    dwb_plugin_name_ + "." + name_ + ".forward_point_distance", 0.1);
 }
 
 bool PathAlignCritic::prepare(

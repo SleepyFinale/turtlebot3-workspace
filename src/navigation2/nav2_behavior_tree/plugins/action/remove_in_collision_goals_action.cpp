@@ -78,9 +78,16 @@ BT::NodeStatus RemoveInCollisionGoals::on_completion(
     {
       valid_goal_poses.goals.push_back(input_goals_.goals[i]);
     } else if (waypoint_statuses_get_res) {
-      using namespace nav2_util::geometry_utils;  // NOLINT
-      auto cur_waypoint_index =
-        find_next_matching_goal_in_waypoint_statuses(waypoint_statuses, input_goals_.goals[i]);
+      // Find the index of the first goal in PENDING status matching the target pose
+      int cur_waypoint_index = -1;
+      for (size_t idx = 0; idx < waypoint_statuses.size(); ++idx) {
+        if (waypoint_statuses[idx].waypoint_pose == input_goals_.goals[i] &&
+            waypoint_statuses[idx].waypoint_status == nav2_msgs::msg::WaypointStatus::PENDING)
+        {
+          cur_waypoint_index = static_cast<int>(idx);
+          break;
+        }
+      }
       if (cur_waypoint_index == -1) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to find matching goal in waypoint_statuses");
         return BT::NodeStatus::FAILURE;

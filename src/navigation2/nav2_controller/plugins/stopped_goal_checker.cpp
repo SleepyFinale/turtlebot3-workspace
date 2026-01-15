@@ -38,6 +38,7 @@
 #include <limits>
 #include <vector>
 #include "nav2_controller/plugins/stopped_goal_checker.hpp"
+#include "nav_msgs/msg/path.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "nav2_ros_common/node_utils.hpp"
 

@@ -84,8 +84,16 @@ inline BT::NodeStatus RemovePassedGoals::tick()
 
     // mark waypoint statuses before the goal is erased from goals
     if (waypoint_statuses_get_res) {
-      auto cur_waypoint_index =
-        find_next_matching_goal_in_waypoint_statuses(waypoint_statuses, goal_poses.goals[0]);
+      // Find the index of the first goal in PENDING status matching the target pose
+      int cur_waypoint_index = -1;
+      for (size_t idx = 0; idx < waypoint_statuses.size(); ++idx) {
+        if (waypoint_statuses[idx].waypoint_pose == goal_poses.goals[0] &&
+            waypoint_statuses[idx].waypoint_status == nav2_msgs::msg::WaypointStatus::PENDING)
+        {
+          cur_waypoint_index = static_cast<int>(idx);
+          break;
+        }
+      }
       if (cur_waypoint_index == -1) {
         RCLCPP_ERROR_ONCE(node_->get_logger(), "Failed to find matching goal in waypoint_statuses");
         return BT::NodeStatus::FAILURE;

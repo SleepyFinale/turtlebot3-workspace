@@ -43,7 +43,7 @@ BT::NodeStatus IsStoppedCondition::tick()
   getInput("velocity_threshold", velocity_threshold_);
   getInput("duration_stopped", duration_stopped_);
 
-  auto twist = odom_smoother_->getRawTwistStamped();
+  auto twist = odom_smoother_->getTwistStamped();
 
   // if there is no timestamp, set it to now
   if (twist.header.stamp.sec == 0 && twist.header.stamp.nanosec == 0) {

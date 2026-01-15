@@ -409,9 +409,10 @@ StaticLayer::updateCosts(
   }
   if (!map_received_in_update_bounds_) {
     static int count = 0;
-    // throttle warning down to only 1/10 message rate
+    // throttle debug message down to only 1/10 message rate
+    // This is expected during SLAM startup - map will be available once SLAM processes scans
     if (++count == 10) {
-      RCLCPP_WARN(logger_, "Can't update static costmap layer, no map received");
+      RCLCPP_DEBUG(logger_, "Can't update static costmap layer, no map received. Waiting for SLAM to publish map...");
       count = 0;
     }
     return;

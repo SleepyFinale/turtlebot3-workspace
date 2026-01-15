@@ -98,14 +98,17 @@ void OscillationCritic::onInit()
 
   clock_ = node->get_clock();
 
-  oscillation_reset_dist_ = node->declare_or_get_parameter(
+  oscillation_reset_dist_ = nav2::declare_or_get_parameter(
+    node.get(),
     dwb_plugin_name_ + "." + name_ +
     ".oscillation_reset_dist", 0.05);
   oscillation_reset_dist_sq_ = oscillation_reset_dist_ * oscillation_reset_dist_;
-  oscillation_reset_angle_ = node->declare_or_get_parameter(
+  oscillation_reset_angle_ = nav2::declare_or_get_parameter(
+    node.get(),
     dwb_plugin_name_ + "." + name_ + ".oscillation_reset_angle", 0.2);
   oscillation_reset_time_ = rclcpp::Duration::from_seconds(
-    node->declare_or_get_parameter(
+    nav2::declare_or_get_parameter(
+      node.get(),
       dwb_plugin_name_ + "." + name_ + ".oscillation_reset_time", -1.0));
 
   nav2::declare_parameter_if_not_declared(

@@ -79,23 +79,18 @@ ParameterHandler::ParameterHandler(
 void ParameterHandler::activate()
 {
   auto node = node_.lock();
-  post_set_params_handler_ = node->add_post_set_parameters_callback(
-    std::bind(
-      &ParameterHandler::updateParametersCallback,
-      this, std::placeholders::_1));
+  // Add callback for dynamic parameters
+  // Note: add_post_set_parameters_callback not available in ROS 2 Humble
+  // Parameters are updated in validateAndUpdateParametersCallback instead
   on_set_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
-      &ParameterHandler::validateParameterUpdatesCallback,
+      &ParameterHandler::validateAndUpdateParametersCallback,
       this, std::placeholders::_1));
 }
 
 void ParameterHandler::deactivate()
 {
   auto node = node_.lock();
-  if (post_set_params_handler_ && node) {
-    node->remove_post_set_parameters_callback(post_set_params_handler_.get());
-  }
-  post_set_params_handler_.reset();
   if (on_set_params_handler_ && node) {
     node->remove_on_set_parameters_callback(on_set_params_handler_.get());
   }
@@ -135,6 +130,17 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::validateParameterUpda
   }
   return result;
 }
+
+rcl_interfaces::msg::SetParametersResult ParameterHandler::validateAndUpdateParametersCallback(
+  const std::vector<rclcpp::Parameter> & parameters)
+{
+  auto result = validateParameterUpdatesCallback(parameters);
+  if (result.successful) {
+    updateParametersCallback(parameters);
+  }
+  return result;
+}
+
 void
 ParameterHandler::updateParametersCallback(
   const std::vector<rclcpp::Parameter> & parameters)

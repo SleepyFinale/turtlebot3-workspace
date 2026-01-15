@@ -653,7 +653,7 @@ void ControllerServer::computeAndPublishVelocity()
     }
   }
 
-  geometry_msgs::msg::Twist twist = getThresholdedTwist(odom_sub_->getRawTwist());
+  geometry_msgs::msg::Twist twist = getThresholdedTwist(odom_sub_->getTwist());
 
   geometry_msgs::msg::PoseStamped goal =
     path_handlers_[current_path_handler_]->getTransformedGoal(pose.header.stamp);
@@ -873,7 +873,7 @@ bool ControllerServer::isGoalReached()
     return false;
   }
 
-  geometry_msgs::msg::Twist velocity = getThresholdedTwist(odom_sub_->getRawTwist());
+  geometry_msgs::msg::Twist velocity = getThresholdedTwist(odom_sub_->getTwist());
 
   return goal_checkers_[current_goal_checker_]->isGoalReached(
     pose.pose, transformed_end_pose_.pose,

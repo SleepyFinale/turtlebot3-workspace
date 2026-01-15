@@ -34,6 +34,7 @@
 #ifndef DWB_CRITICS__PATH_DIST_HPP_
 #define DWB_CRITICS__PATH_DIST_HPP_
 
+#include "nav_msgs/msg/path.hpp"
 #include "dwb_critics/map_grid.hpp"
 
 namespace dwb_critics

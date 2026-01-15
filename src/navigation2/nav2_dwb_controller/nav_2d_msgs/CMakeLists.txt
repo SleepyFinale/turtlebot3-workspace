@@ -11,6 +11,8 @@ rosidl_generate_interfaces(nav_2d_msgs
     "msg/Twist2D.msg"
     "msg/Twist2D32.msg"
     "msg/Twist2DStamped.msg"
+    "msg/Path2D.msg"
+    "msg/Pose2DStamped.msg"
     DEPENDENCIES geometry_msgs std_msgs
 )
 

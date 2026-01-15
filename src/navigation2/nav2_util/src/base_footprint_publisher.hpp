@@ -32,15 +32,16 @@ namespace nav2_util
 {
 
 /**
- * @brief A TF2 listener that overrides the subscription callback
- * to inject base footprint publisher removing Z, Pitch, and Roll for
- * 3D state estimation but desiring a 2D frame for navigation, visualization, or other reasons
+ * @brief A class that subscribes to TF messages to inject base footprint publisher
+ * removing Z, Pitch, and Roll for 3D state estimation but desiring a 2D frame
+ * for navigation, visualization, or other reasons
  */
-class BaseFootprintPublisherListener : public tf2_ros::TransformListener
+class BaseFootprintPublisherListener
 {
 public:
-  BaseFootprintPublisherListener(tf2::BufferCore & buffer, bool spin_thread, rclcpp::Node & node)
-  : tf2_ros::TransformListener(buffer, spin_thread)
+  BaseFootprintPublisherListener(
+    tf2::BufferCore & buffer, bool spin_thread, rclcpp::Node & node)
+  : node_(node)
   {
     node.declare_parameter(
       "base_link_frame", rclcpp::ParameterValue(std::string("base_link")));
@@ -49,19 +50,21 @@ public:
     base_link_frame_ = node.get_parameter("base_link_frame").as_string();
     base_footprint_frame_ = node.get_parameter("base_footprint_frame").as_string();
     tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node);
+    
+    // Create TransformListener to populate the buffer
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(buffer, spin_thread);
+    
+    // Subscribe to /tf topic directly to process transforms
+    tf_sub_ = node.create_subscription<tf2_msgs::msg::TFMessage>(
+      "/tf", rclcpp::QoS(100),
+      std::bind(&BaseFootprintPublisherListener::tfCallback, this, std::placeholders::_1));
   }
 
   /**
-   * @brief Overrides TF2 subscription callback to inject base footprint publisher
+   * @brief Callback for TF messages to inject base footprint publisher
    */
-  void subscription_callback(tf2_msgs::msg::TFMessage::ConstSharedPtr msg, bool is_static) override
+  void tfCallback(tf2_msgs::msg::TFMessage::ConstSharedPtr msg)
   {
-    TransformListener::subscription_callback(msg, is_static);
-
-    if (is_static) {
-      return;
-    }
-
     for (unsigned int i = 0; i != msg->transforms.size(); i++) {
       auto & t = msg->transforms[i];
       if (t.child_frame_id == base_link_frame_) {
@@ -90,7 +93,10 @@ public:
   }
 
 protected:
+  rclcpp::Node & node_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr tf_sub_;
   std::string base_link_frame_, base_footprint_frame_;
 };
 

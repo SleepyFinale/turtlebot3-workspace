@@ -40,10 +40,12 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "nav_2d_msgs/msg/twist2_d.hpp"
+#include "nav_2d_msgs/msg/path2_d.hpp"
+#include "nav_2d_msgs/msg/pose2_d_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "tf2/convert.hpp"
+#include "tf2/convert.h"
 
 namespace nav_2d_utils
 {
@@ -52,6 +54,7 @@ nav_2d_msgs::msg::Twist2D twist3Dto2D(const geometry_msgs::msg::Twist & cmd_vel)
 nav_msgs::msg::Path posesToPath(
   const std::vector<geometry_msgs::msg::Pose> & poses,
   const std::string & frame, const rclcpp::Time & stamp);
+nav_msgs::msg::Path posesToPath(const std::vector<geometry_msgs::msg::PoseStamped> & poses);
 
 }  // namespace nav_2d_utils
 

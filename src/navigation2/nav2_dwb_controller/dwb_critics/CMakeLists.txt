@@ -21,6 +21,10 @@ find_package(tf2 REQUIRED)
 
 nav2_package()
 
+# Get workspace dwb_core and nav_2d_utils include directories to ensure workspace versions are used
+get_target_property(dwb_core_include_dirs dwb_core::dwb_core INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(nav_2d_utils_include_dirs nav_2d_utils::path_ops INTERFACE_INCLUDE_DIRECTORIES)
+
 add_library(${PROJECT_NAME} SHARED
   src/alignment_util.cpp
   src/map_grid.cpp
@@ -39,6 +43,17 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace dwb_core and nav_2d_utils headers are found before system versions
+if(dwb_core_include_dirs)
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${dwb_core_include_dirs}>
+  )
+endif()
+if(nav_2d_utils_include_dirs)
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${nav_2d_utils_include_dirs}>
+  )
+endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC
   costmap_queue::costmap_queue
   dwb_core::dwb_core

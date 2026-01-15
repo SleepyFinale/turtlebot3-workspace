@@ -104,9 +104,18 @@ protected:
   validateParameterUpdatesCallback(const std::vector<rclcpp::Parameter> & parameters);
 
   // Dynamic parameters handler
+  // Note: PostSetParametersCallbackHandle not available in ROS 2 Humble
+  // Combined validation and update in a single callback
   std::mutex mutex_;
-  rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr post_set_params_handler_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr on_set_params_handler_;
+  /**
+   * @brief Combined callback that validates and updates parameters (Humble compatibility)
+   * This callback validates parameters first, and if successful, updates them.
+   * @param parameters List of parameters that are being updated.
+   * @return rcl_interfaces::msg::SetParametersResult Result indicating whether the update is accepted.
+   */
+  rcl_interfaces::msg::SetParametersResult
+  validateAndUpdateParametersCallback(const std::vector<rclcpp::Parameter> & parameters);
   Parameters params_;
   std::string plugin_name_;
   rclcpp::Logger logger_ {rclcpp::get_logger("RotationShimController")};

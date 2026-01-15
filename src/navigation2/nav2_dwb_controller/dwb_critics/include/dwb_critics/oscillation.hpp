@@ -38,6 +38,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include "nav_msgs/msg/path.hpp"
 #include "dwb_core/trajectory_critic.hpp"
 
 using namespace std::chrono_literals;  // NOLINT

@@ -66,10 +66,10 @@ public:
   void activate()
   {
     auto node = node_.lock();
-    post_set_params_handler_ = node->add_post_set_parameters_callback(
-      std::bind(&ParameterHandler::updateParametersCallback, this, std::placeholders::_1));
+    // Note: add_post_set_parameters_callback not available in ROS 2 Humble
+    // Parameters are updated in validateParameterUpdatesCallback instead
     on_set_params_handler_ = node->add_on_set_parameters_callback(
-      std::bind(&ParameterHandler::validateParameterUpdatesCallback, this, std::placeholders::_1));
+      std::bind(&ParameterHandler::validateAndUpdateParametersCallback, this, std::placeholders::_1));
   }
 
   /**
@@ -78,13 +78,9 @@ public:
   void deactivate()
   {
     auto node = node_.lock();
-    if (post_set_params_handler_ && node) {
-      node->remove_post_set_parameters_callback(post_set_params_handler_.get());
-    }
     if (on_set_params_handler_ && node) {
       node->remove_on_set_parameters_callback(on_set_params_handler_.get());
     }
-    post_set_params_handler_.reset();
     on_set_params_handler_.reset();
   }
 
@@ -93,8 +89,23 @@ protected:
   std::mutex mutex_;
   ParamsT params_;
   rclcpp::Logger logger_;
-  rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr post_set_params_handler_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr on_set_params_handler_;
+
+  /**
+   * @brief Combined validate and update callback for ROS 2 Humble compatibility.
+   * This callback validates parameter updates and applies them if valid.
+   * @param parameters List of parameters that are being updated.
+   * @return rcl_interfaces::msg::SetParametersResult Result indicating whether the update is accepted.
+   */
+  rcl_interfaces::msg::SetParametersResult validateAndUpdateParametersCallback(
+    const std::vector<rclcpp::Parameter> & parameters)
+  {
+    auto result = validateParameterUpdatesCallback(parameters);
+    if (result.successful) {
+      updateParametersCallback(parameters);
+    }
+    return result;
+  }
 
   /**
    * @brief Validate incoming parameter updates before applying them.

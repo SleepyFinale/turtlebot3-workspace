@@ -88,4 +88,15 @@ nav_msgs::msg::Path posesToPath(
   return path;
 }
 
+nav_msgs::msg::Path posesToPath(const std::vector<geometry_msgs::msg::PoseStamped> & poses)
+{
+  nav_msgs::msg::Path path;
+  if (poses.empty()) {
+    return path;
+  }
+  path.poses = poses;
+  path.header = poses[0].header;
+  return path;
+}
+
 }  // namespace nav_2d_utils

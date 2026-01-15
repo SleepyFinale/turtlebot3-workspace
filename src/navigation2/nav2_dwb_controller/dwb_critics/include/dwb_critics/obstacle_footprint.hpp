@@ -36,6 +36,7 @@
 #define DWB_CRITICS__OBSTACLE_FOOTPRINT_HPP_
 
 #include <vector>
+#include "nav_msgs/msg/path.hpp"
 #include "dwb_critics/base_obstacle.hpp"
 
 namespace dwb_critics

@@ -21,6 +21,9 @@ find_package(nav2_ros_common REQUIRED)
 
 nav2_package()
 
+# Get workspace nav2_util include directories to ensure workspace version is used
+get_target_property(nav2_util_include_dirs nav2_util::nav2_util_core INTERFACE_INCLUDE_DIRECTORIES)
+
 set(executable_name bt_navigator)
 
 set(library_name ${executable_name}_core)
@@ -33,6 +36,12 @@ target_include_directories(${library_name}
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(${library_name} PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(${library_name} PUBLIC
   nav2_core::nav2_core
   nav2_util::nav2_util_core
@@ -68,6 +77,12 @@ target_include_directories(nav2_navigate_to_pose_navigator
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(nav2_navigate_to_pose_navigator PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(nav2_navigate_to_pose_navigator PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core
@@ -91,6 +106,12 @@ target_include_directories(nav2_navigate_through_poses
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(nav2_navigate_through_poses PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(nav2_navigate_through_poses PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core

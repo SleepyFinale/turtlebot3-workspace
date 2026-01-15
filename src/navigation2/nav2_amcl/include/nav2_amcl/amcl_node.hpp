@@ -111,7 +111,8 @@ protected:
   void updateParametersCallback(const std::vector<rclcpp::Parameter> & parameters);
 
   // Dynamic parameters handler
-  rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr post_set_params_handler_;
+  // Note: PostSetParametersCallbackHandle not available in this ROS 2 version
+  // rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr post_set_params_handler_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr on_set_params_handler_;
 
   // Since the sensor data from gazebo or the robot is not lifecycle enabled, we won't

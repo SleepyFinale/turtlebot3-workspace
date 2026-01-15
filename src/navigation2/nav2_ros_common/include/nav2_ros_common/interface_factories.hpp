@@ -18,6 +18,7 @@
 #include <utility>
 #include <string>
 #include <memory>
+#include <functional>
 #include "nav2_ros_common/qos_profiles.hpp"
 #include "nav2_ros_common/service_client.hpp"
 #include "nav2_ros_common/service_server.hpp"
@@ -40,8 +41,7 @@ namespace interfaces
  * @param allow_parameter_qos_overrides Whether to allow QoS overrides for this subscription
  * @param callback_group_ptr Pointer to the callback group to use for this subscription
  * @param qos_message_lost_callback Callback for when a QoS message is lost
- * @param subscription_matched_callback Callback when a subscription is matched with a publisher
- * @param incompatible_qos_type_callback Callback for when an incompatible QoS type is requested
+ * @param subscription_matched_callback Callback when a subscription is matched with a publisher (deprecated in rclcpp 16.0.15+)
  * @param qos_requested_incompatible_qos_callback Callback for when a QoS request is incompatible
  * @param qos_deadline_requested_callback Callback for when a QoS deadline is missed
  * @param qos_liveliness_changed_callback Callback for when a QoS liveliness change occurs
@@ -52,8 +52,7 @@ inline rclcpp::SubscriptionOptions createSubscriptionOptions(
   const bool allow_parameter_qos_overrides = true,
   const rclcpp::CallbackGroup::SharedPtr callback_group_ptr = nullptr,
   rclcpp::QOSMessageLostCallbackType qos_message_lost_callback = nullptr,
-  rclcpp::SubscriptionMatchedCallbackType subscription_matched_callback = nullptr,
-  rclcpp::IncompatibleTypeCallbackType incompatible_qos_type_callback = nullptr,
+  std::function<void(int)> subscription_matched_callback = nullptr,
   rclcpp::QOSRequestedIncompatibleQoSCallbackType requested_incompatible_qos_callback = nullptr,
   rclcpp::QOSDeadlineRequestedCallbackType qos_deadline_requested_callback = nullptr,
   rclcpp::QOSLivelinessChangedCallbackType qos_liveliness_changed_callback = nullptr)
@@ -71,7 +70,6 @@ inline rclcpp::SubscriptionOptions createSubscriptionOptions(
 
   // ROS 2 default logs this already
   options.event_callbacks.incompatible_qos_callback = requested_incompatible_qos_callback;
-  options.event_callbacks.incompatible_type_callback = incompatible_qos_type_callback;
 
   // Set the event callbacks if given, else log
   if (qos_message_lost_callback) {
@@ -88,28 +86,8 @@ inline rclcpp::SubscriptionOptions createSubscriptionOptions(
       };
   }
 
-  if (subscription_matched_callback) {
-    options.event_callbacks.matched_callback = subscription_matched_callback;
-  } else {
-    options.event_callbacks.matched_callback =
-      [topic_name](rclcpp::MatchedInfo & status) {
-        if (status.current_count_change > 0) {
-          RCLCPP_DEBUG(
-            rclcpp::get_logger("nav2::interfaces"),
-            "Connected: %d new publisher(s) to [%s]. Total active: %zu.",
-            status.current_count_change,
-            topic_name.c_str(),
-            status.current_count);
-        } else if (status.current_count_change < 0) {
-          RCLCPP_DEBUG(
-            rclcpp::get_logger("nav2::interfaces"),
-            "Disconnected: %d publisher(s) from [%s]. Total active: %zu.",
-            -status.current_count_change,
-            topic_name.c_str(),
-            status.current_count);
-        }
-      };
-  }
+  // Note: matched_callback is no longer supported in rclcpp 16.0.15+
+  // The callback would receive an integer count, but the member doesn't exist in EventCallbacks
 
   options.event_callbacks.deadline_callback = qos_deadline_requested_callback;
   options.event_callbacks.liveliness_callback = qos_liveliness_changed_callback;
@@ -121,8 +99,7 @@ inline rclcpp::SubscriptionOptions createSubscriptionOptions(
  * @param topic_name Name of topic
  * @param allow_parameter_qos_overrides Whether to allow QoS overrides for this publisher
  * @param callback_group_ptr Pointer to the callback group to use for this publisher
- * @param publisher_matched_callback Callback when a publisher is matched with a subscriber
- * @param incompatible_qos_type_callback Callback for when an incompatible QoS type is requested
+ * @param publisher_matched_callback Callback when a publisher is matched with a subscriber (deprecated in rclcpp 16.0.15+)
  * @param offered_incompatible_qos_cb Callback for when a QoS request is incompatible
  * @param qos_deadline_offered_callback Callback for when a QoS deadline is missed
  * @param qos_liveliness_lost_callback Callback for when a QoS liveliness change occurs
@@ -132,8 +109,7 @@ inline rclcpp::PublisherOptions createPublisherOptions(
   const std::string & topic_name,
   const bool allow_parameter_qos_overrides = true,
   const rclcpp::CallbackGroup::SharedPtr callback_group_ptr = nullptr,
-  rclcpp::PublisherMatchedCallbackType publisher_matched_callback = nullptr,
-  rclcpp::IncompatibleTypeCallbackType incompatible_qos_type_callback = nullptr,
+  std::function<void(int)> publisher_matched_callback = nullptr,
   rclcpp::QOSOfferedIncompatibleQoSCallbackType offered_incompatible_qos_cb = nullptr,
   rclcpp::QOSDeadlineOfferedCallbackType qos_deadline_offered_callback = nullptr,
   rclcpp::QOSLivelinessLostCallbackType qos_liveliness_lost_callback = nullptr)
@@ -151,31 +127,9 @@ inline rclcpp::PublisherOptions createPublisherOptions(
 
   // ROS 2 default logs this already
   options.event_callbacks.incompatible_qos_callback = offered_incompatible_qos_cb;
-  options.event_callbacks.incompatible_type_callback = incompatible_qos_type_callback;
 
-  // Set the event callbacks, else log
-  if (publisher_matched_callback) {
-    options.event_callbacks.matched_callback = publisher_matched_callback;
-  } else {
-    options.event_callbacks.matched_callback =
-      [topic_name](rclcpp::MatchedInfo & status) {
-        if (status.current_count_change > 0) {
-          RCLCPP_DEBUG(
-            rclcpp::get_logger("nav2::interfaces"),
-            "Connected: %d new subscriber(s) to [%s]. Total active: %zu.",
-            status.current_count_change,
-            topic_name.c_str(),
-            status.current_count);
-        } else if (status.current_count_change < 0) {
-          RCLCPP_DEBUG(
-            rclcpp::get_logger("nav2::interfaces"),
-            "Disconnected: %d subscriber(s) from [%s]. Total active: %zu.",
-            -status.current_count_change,
-            topic_name.c_str(),
-            status.current_count);
-        }
-      };
-  }
+  // Note: matched_callback is no longer supported in rclcpp 16.0.15+
+  // The callback would receive an integer count, but the member doesn't exist in EventCallbacks
 
   options.event_callbacks.deadline_callback = qos_deadline_offered_callback;
   options.event_callbacks.liveliness_callback = qos_liveliness_lost_callback;

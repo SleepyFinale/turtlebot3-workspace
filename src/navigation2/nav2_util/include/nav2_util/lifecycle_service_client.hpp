@@ -34,25 +34,10 @@ using namespace std::chrono_literals;  // NOLINT
 class LifecycleServiceClient
 {
 public:
-  template<typename NodeT>
-  explicit
+  explicit LifecycleServiceClient(const std::string & lifecycle_node_name);
   LifecycleServiceClient(
-    const string & lifecycle_node_name,
-    NodeT parent_node)
-  : change_state_(lifecycle_node_name + "/change_state", parent_node,
-      true /*creates and spins an internal executor*/),
-    get_state_(lifecycle_node_name + "/get_state", parent_node,
-      true /*creates and spins an internal executor*/)
-  {
-    // Block until server is up
-    rclcpp::Rate r(20);
-    while (!get_state_.wait_for_service(2s)) {
-      RCLCPP_INFO(
-        parent_node->get_logger(),
-        "Waiting for service %s...", get_state_.getServiceName().c_str());
-      r.sleep();
-    }
-  }
+    const std::string & lifecycle_node_name,
+    rclcpp::Node::SharedPtr parent_node);
 
   ~LifecycleServiceClient()
   {
@@ -66,16 +51,19 @@ public:
    */
   bool change_state(
     const uint8_t transition,  // takes a lifecycle_msgs::msg::Transition id
-    const std::chrono::milliseconds transition_timeout = std::chrono::milliseconds(-1),
-    const std::chrono::milliseconds wait_for_service_timeout = std::chrono::milliseconds(5000));
+    const std::chrono::seconds timeout = std::chrono::seconds(-1));
+
+  /// Trigger a state change (overload for backward compatibility)
+  bool change_state(std::uint8_t transition);
 
   /// Get the current state as a lifecycle_msgs::msg::State id value
   /**
    * Throws std::runtime_error on failure
    */
-  uint8_t get_state(const std::chrono::milliseconds timeout = std::chrono::milliseconds(2000));
+  uint8_t get_state(const std::chrono::seconds timeout = std::chrono::seconds(2));
 
 protected:
+  rclcpp::Node::SharedPtr node_;
   nav2::ServiceClient<lifecycle_msgs::srv::ChangeState> change_state_;
   nav2::ServiceClient<lifecycle_msgs::srv::GetState> get_state_;
 };

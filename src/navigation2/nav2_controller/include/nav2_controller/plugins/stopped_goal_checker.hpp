@@ -42,6 +42,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_controller/plugins/simple_goal_checker.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 namespace nav2_controller
 {

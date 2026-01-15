@@ -36,6 +36,7 @@
 
 #include <string>
 #include <vector>
+#include "nav_msgs/msg/path.hpp"
 #include "dwb_core/trajectory_critic.hpp"
 
 namespace dwb_critics

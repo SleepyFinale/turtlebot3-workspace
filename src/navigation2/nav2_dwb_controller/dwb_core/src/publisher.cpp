@@ -221,11 +221,19 @@ DWBPublisher::publishLocalPlan(
 {
   if (!publish_local_plan_) {return;}
 
+  // Convert poses to PoseStamped for compatibility with nav_2d_utils
+  std::vector<geometry_msgs::msg::PoseStamped> poses_stamped;
+  poses_stamped.reserve(traj.poses.size());
+  for (const auto & pose : traj.poses) {
+    geometry_msgs::msg::PoseStamped ps;
+    ps.header = header;
+    ps.pose = pose;
+    poses_stamped.push_back(ps);
+  }
+
   auto path =
     std::make_unique<nav_msgs::msg::Path>(
-    nav_2d_utils::posesToPath(
-      traj.poses, header.frame_id,
-      header.stamp));
+    nav_2d_utils::posesToPath(poses_stamped));
 
   if (local_pub_->get_subscription_count() > 0) {
     local_pub_->publish(std::move(path));

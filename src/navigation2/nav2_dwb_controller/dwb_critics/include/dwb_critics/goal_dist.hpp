@@ -35,6 +35,7 @@
 #define DWB_CRITICS__GOAL_DIST_HPP_
 
 #include <vector>
+#include "nav_msgs/msg/path.hpp"
 #include "dwb_critics/map_grid.hpp"
 
 namespace dwb_critics

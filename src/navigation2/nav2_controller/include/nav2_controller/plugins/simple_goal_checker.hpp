@@ -41,6 +41,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
+// Include workspace version of goal_checker first to ensure correct signature
+#include "nav_msgs/msg/path.hpp"
 #include "nav2_core/goal_checker.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 

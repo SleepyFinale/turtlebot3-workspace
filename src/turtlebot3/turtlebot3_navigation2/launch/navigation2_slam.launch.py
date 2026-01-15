@@ -36,7 +36,8 @@ def generate_launch_description():
     # Pass empty string to disable map_server loading a static file
     map_dir = LaunchConfiguration('map', default='')
 
-    param_file_name = TURTLEBOT3_MODEL + '.yaml'
+    # Use SLAM-specific parameter file for exploration (preserves unknown space)
+    param_file_name = TURTLEBOT3_MODEL + '_slam.yaml'
     if ROS_DISTRO == 'humble':
         param_dir = LaunchConfiguration(
             'params_file',
@@ -81,7 +82,9 @@ def generate_launch_description():
             launch_arguments={
                 'map': map_dir,
                 'use_sim_time': use_sim_time,
-                'params_file': param_dir}.items(),
+                'params_file': param_dir,
+                'slam': 'True',  # Enable SLAM instead of AMCL
+                'use_localization': 'True'}.items(),
         ),
 
         Node(

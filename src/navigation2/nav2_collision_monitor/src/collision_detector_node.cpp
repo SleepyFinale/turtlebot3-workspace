@@ -19,6 +19,7 @@
 #include <utility>
 #include <functional>
 
+#include "rclcpp/create_timer.hpp"
 #include "tf2_ros/create_timer_ros.hpp"
 
 #include "nav2_ros_common/node_utils.hpp"
@@ -82,7 +83,9 @@ CollisionDetector::on_activate(const rclcpp_lifecycle::State & /*state*/)
   }
 
   // Creating timer
-  timer_ = this->create_timer(
+  timer_ = rclcpp::create_timer(
+    this,
+    this->get_clock(),
     std::chrono::duration<double>{1.0 / frequency_},
     std::bind(&CollisionDetector::process, this));
 

@@ -39,6 +39,7 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "dwb_core/trajectory_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
+#include "nav2_ros_common/node_utils.hpp"
 #include "angles/angles.h"
 
 PLUGINLIB_EXPORT_CLASS(dwb_critics::RotateToGoalCritic, dwb_core::TrajectoryCritic)
@@ -58,17 +59,22 @@ void RotateToGoalCritic::onInit()
     throw std::runtime_error{"Failed to lock node"};
   }
 
-  xy_goal_tolerance_ = node->declare_or_get_parameter(
-    dwb_plugin_name_ + ".xy_goal_tolerance", 0.25);
+  xy_goal_tolerance_ = nav2::declare_or_get_parameter(
+    node.get(),
+    dwb_plugin_name_ + "." + name_ + ".xy_goal_tolerance", 0.25);
   xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
-  path_length_tolerance_ = node->declare_or_get_parameter(
-    dwb_plugin_name_ + "path_length_tolerance", 1.0);
-  double stopped_xy_velocity = node->declare_or_get_parameter(
-    dwb_plugin_name_ + ".trans_stopped_velocity", 0.25);
+  path_length_tolerance_ = nav2::declare_or_get_parameter(
+    node.get(),
+    dwb_plugin_name_ + "." + name_ + ".path_length_tolerance", 0.5);
+  double stopped_xy_velocity = nav2::declare_or_get_parameter(
+    node.get(),
+    dwb_plugin_name_ + "." + name_ + ".stopped_xy_velocity", 0.001);
   stopped_xy_velocity_sq_ = stopped_xy_velocity * stopped_xy_velocity;
-  slowing_factor_ = node->declare_or_get_parameter(
+  slowing_factor_ = nav2::declare_or_get_parameter(
+    node.get(),
     dwb_plugin_name_ + "." + name_ + ".slowing_factor", 5.0);
-  lookahead_time_ = node->declare_or_get_parameter(
+  lookahead_time_ = nav2::declare_or_get_parameter(
+    node.get(),
     dwb_plugin_name_ + "." + name_ + ".lookahead_time", -1.0);
   reset();
 }

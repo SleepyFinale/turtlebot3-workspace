@@ -49,6 +49,11 @@ target_include_directories(nav2_costmap_2d_core
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Add include directories for header-only tf2_sensor_msgs
+# The include directories are exported via ament_cmake_export_include_directories
+if(tf2_sensor_msgs_INCLUDE_DIRS)
+  target_include_directories(nav2_costmap_2d_core PUBLIC ${tf2_sensor_msgs_INCLUDE_DIRS})
+endif()
 target_link_libraries(nav2_costmap_2d_core PUBLIC
   ${geometry_msgs_TARGETS}
   ${map_msgs_TARGETS}
@@ -60,9 +65,9 @@ target_link_libraries(nav2_costmap_2d_core PUBLIC
   ${std_srvs_TARGETS}
   tf2::tf2
   tf2_ros::tf2_ros
-  tf2_sensor_msgs::tf2_sensor_msgs
   nav2_ros_common::nav2_ros_common
 )
+# Note: tf2_sensor_msgs is header-only, include directories added above
 
 add_library(layers SHARED
   plugins/inflation_layer.cpp

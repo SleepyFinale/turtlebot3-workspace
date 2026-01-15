@@ -307,10 +307,13 @@ LifecycleManager::changeStateForNode(const std::string & node_name, std::uint8_t
 {
   message(transition_label_map_[transition] + node_name);
 
-  if (!node_map_[node_name]->change_state(
-      transition, std::chrono::milliseconds(-1),
-      service_timeout_) ||
-    !(node_map_[node_name]->get_state(service_timeout_) == transition_state_map_[transition]))
+  // Convert milliseconds to seconds for system-installed nav2_util API
+  auto timeout_seconds = std::chrono::duration_cast<std::chrono::seconds>(service_timeout_);
+  if (timeout_seconds.count() == 0 && service_timeout_.count() > 0) {
+    timeout_seconds = std::chrono::seconds(1);  // Minimum 1 second if timeout is positive but < 1s
+  }
+  if (!node_map_[node_name]->change_state(transition, timeout_seconds) ||
+    !(node_map_[node_name]->get_state(timeout_seconds) == transition_state_map_[transition]))
   {
     RCLCPP_ERROR(get_logger(), "Failed to change state for node: %s", node_name.c_str());
     return false;
@@ -603,7 +606,12 @@ LifecycleManager::checkBondRespawnConnection()
     }
 
     try {
-      node_map_[node_name]->get_state(service_timeout_);  // Only won't throw if the server exists
+      // Convert milliseconds to seconds for system-installed nav2_util API
+      auto timeout_seconds = std::chrono::duration_cast<std::chrono::seconds>(service_timeout_);
+      if (timeout_seconds.count() == 0 && service_timeout_.count() > 0) {
+        timeout_seconds = std::chrono::seconds(1);  // Minimum 1 second if timeout is positive but < 1s
+      }
+      node_map_[node_name]->get_state(timeout_seconds);  // Only won't throw if the server exists
       live_servers++;
     } catch (...) {
       break;

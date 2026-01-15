@@ -20,6 +20,7 @@
 
 #include "lifecycle_msgs/srv/change_state.hpp"
 #include "lifecycle_msgs/srv/get_state.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 using nav2::generate_internal_node;
 using std::chrono::milliseconds;
@@ -30,19 +31,47 @@ using namespace std::chrono_literals;
 namespace nav2_util
 {
 
+LifecycleServiceClient::LifecycleServiceClient(const std::string & lifecycle_node_name)
+: LifecycleServiceClient(lifecycle_node_name, generate_internal_node("lifecycle_service_client"))
+{
+}
+
+LifecycleServiceClient::LifecycleServiceClient(
+  const std::string & lifecycle_node_name,
+  rclcpp::Node::SharedPtr parent_node)
+: node_(parent_node),
+  change_state_(lifecycle_node_name + "/change_state", parent_node,
+    true /*creates and spins an internal executor*/),
+  get_state_(lifecycle_node_name + "/get_state", parent_node,
+    true /*creates and spins an internal executor*/)
+{
+  // Block until server is up
+  rclcpp::Rate r(20);
+  int wait_count = 0;
+  while (!get_state_.wait_for_service(2s)) {
+    // Only log every 10 attempts (every ~1 second) to reduce log spam
+    if (wait_count % 10 == 0) {
+      RCLCPP_INFO(
+        parent_node->get_logger(),
+        "Waiting for service %s...", get_state_.getServiceName().c_str());
+    }
+    wait_count++;
+    r.sleep();
+  }
+}
+
 bool LifecycleServiceClient::change_state(
   const uint8_t transition,
-  const milliseconds transition_timeout,
-  const milliseconds wait_for_service_timeout)
+  const std::chrono::seconds timeout)
 {
-  if (!change_state_.wait_for_service(wait_for_service_timeout)) {
+  if (!change_state_.wait_for_service(std::chrono::seconds(10))) {
     throw std::runtime_error("change_state service is not available!");
   }
 
   auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
   request->transition.id = transition;
-  if (transition_timeout > 0ms) {
-    auto response = change_state_.invoke(request, transition_timeout);
+  if (timeout.count() > 0) {
+    auto response = change_state_.invoke(request, timeout);
     return response.get();
   } else {
     auto response = std::make_shared<lifecycle_msgs::srv::ChangeState::Response>();
@@ -50,8 +79,13 @@ bool LifecycleServiceClient::change_state(
   }
 }
 
+bool LifecycleServiceClient::change_state(std::uint8_t transition)
+{
+  return change_state(transition, std::chrono::seconds(-1));
+}
+
 uint8_t LifecycleServiceClient::get_state(
-  const milliseconds timeout)
+  const std::chrono::seconds timeout)
 {
   if (!get_state_.wait_for_service(timeout)) {
     throw std::runtime_error("get_state service is not available!");

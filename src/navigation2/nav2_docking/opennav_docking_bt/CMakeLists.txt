@@ -17,12 +17,22 @@ find_package(nav2_ros_common REQUIRED)
 
 nav2_package()
 
+# Get workspace nav2_behavior_tree include directories to ensure workspace version is used
+get_target_property(nav2_behavior_tree_include_dirs nav2_behavior_tree::nav2_behavior_tree INTERFACE_INCLUDE_DIRECTORIES)
+
 add_library(opennav_dock_action_bt_node SHARED src/dock_robot.cpp)
 target_include_directories(opennav_dock_action_bt_node
   PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_behavior_tree header is found before system version
+# This ensures the same behaviortree_cpp version is used
+if(nav2_behavior_tree_include_dirs)
+  target_include_directories(opennav_dock_action_bt_node PRIVATE
+    $<BUILD_INTERFACE:${nav2_behavior_tree_include_dirs}>
+  )
+endif()
 target_compile_definitions(opennav_dock_action_bt_node PRIVATE BT_PLUGIN_EXPORT)
 target_link_libraries(opennav_dock_action_bt_node PUBLIC
   behaviortree_cpp::behaviortree_cpp
@@ -38,6 +48,13 @@ target_include_directories(opennav_undock_action_bt_node
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_behavior_tree header is found before system version
+# This ensures the same behaviortree_cpp version is used
+if(nav2_behavior_tree_include_dirs)
+  target_include_directories(opennav_undock_action_bt_node PRIVATE
+    $<BUILD_INTERFACE:${nav2_behavior_tree_include_dirs}>
+  )
+endif()
 target_compile_definitions(opennav_undock_action_bt_node PRIVATE BT_PLUGIN_EXPORT)
 target_link_libraries(opennav_undock_action_bt_node PUBLIC
   behaviortree_cpp::behaviortree_cpp

@@ -21,6 +21,9 @@ find_package(point_cloud_transport REQUIRED)
 
 nav2_package()
 
+# Get workspace nav2_util include directories to ensure workspace version is used
+get_target_property(nav2_util_include_dirs nav2_util::nav2_util_core INTERFACE_INCLUDE_DIRECTORIES)
+
 set(monitor_executable_name collision_monitor)
 set(detector_executable_name collision_detector)
 set(monitor_library_name ${monitor_executable_name}_core)
@@ -44,6 +47,12 @@ target_include_directories(${monitor_library_name}
   PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(${monitor_library_name} PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(${monitor_library_name} PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_costmap_2d::nav2_costmap_2d_client
@@ -80,6 +89,12 @@ target_include_directories(${detector_library_name}
   PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(${detector_library_name} PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(${detector_library_name} PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_costmap_2d::nav2_costmap_2d_client

@@ -21,6 +21,9 @@ find_package(nav2_ros_common REQUIRED)
 
 nav2_package()
 
+# Get workspace nav2_core include directories to ensure workspace version is used
+get_target_property(nav2_core_include_dirs nav2_core::nav2_core INTERFACE_INCLUDE_DIRECTORIES)
+
 set(executable_name controller_server)
 
 set(library_name ${executable_name}_core)
@@ -34,6 +37,13 @@ target_include_directories(${library_name}
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_util header is found before system version
+get_target_property(nav2_util_include_dirs nav2_util::nav2_util_core INTERFACE_INCLUDE_DIRECTORIES)
+if(nav2_util_include_dirs)
+  target_include_directories(${library_name} PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(${library_name} PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core
@@ -112,6 +122,12 @@ target_include_directories(simple_goal_checker
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_core header is found before system version
+if(nav2_core_include_dirs)
+  target_include_directories(simple_goal_checker PRIVATE
+    $<BUILD_INTERFACE:${nav2_core_include_dirs}>
+  )
+endif()
 target_link_libraries(simple_goal_checker PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core
@@ -134,6 +150,12 @@ target_include_directories(stopped_goal_checker
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_core header is found before system version
+if(nav2_core_include_dirs)
+  target_include_directories(stopped_goal_checker PRIVATE
+    $<BUILD_INTERFACE:${nav2_core_include_dirs}>
+  )
+endif()
 target_link_libraries(stopped_goal_checker PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_costmap_2d::nav2_costmap_2d_core
@@ -154,6 +176,12 @@ target_include_directories(position_goal_checker
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_core header is found before system version
+if(nav2_core_include_dirs)
+  target_include_directories(position_goal_checker PRIVATE
+    $<BUILD_INTERFACE:${nav2_core_include_dirs}>
+  )
+endif()
 target_link_libraries(position_goal_checker PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core
@@ -175,6 +203,12 @@ target_include_directories(axis_goal_checker
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_core header is found before system version
+if(nav2_core_include_dirs)
+  target_include_directories(axis_goal_checker PRIVATE
+    $<BUILD_INTERFACE:${nav2_core_include_dirs}>
+  )
+endif()
 target_link_libraries(axis_goal_checker PUBLIC
   ${geometry_msgs_TARGETS}
   nav2_core::nav2_core

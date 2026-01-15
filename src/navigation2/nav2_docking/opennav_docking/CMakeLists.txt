@@ -24,10 +24,76 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(yaml-cpp REQUIRED)
+
+# Ensure yaml-cpp::yaml-cpp target exists
+# yaml_cpp_vendor should provide this, but if not, create it from system yaml-cpp
+if(NOT TARGET yaml-cpp::yaml-cpp)
+  if(TARGET yaml-cpp)
+    # If yaml-cpp target exists without namespace, create alias
+    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+  elseif(yaml-cpp_FOUND OR YAML_CPP_FOUND)
+    # Try common variable names from FindYAML-CPP or yaml-cpp config
+    set(YAML_CPP_LIB "")
+    set(YAML_CPP_INCLUDE_DIR "")
+
+    # Check various possible variable names
+    if(DEFINED yaml-cpp_LIBRARIES)
+      set(YAML_CPP_LIB "${yaml-cpp_LIBRARIES}")
+    elseif(DEFINED YAML_CPP_LIBRARIES)
+      set(YAML_CPP_LIB "${YAML_CPP_LIBRARIES}")
+    elseif(DEFINED yaml-cpp_LIBRARY)
+      set(YAML_CPP_LIB "${yaml-cpp_LIBRARY}")
+    elseif(DEFINED YAML_CPP_LIBRARY)
+      set(YAML_CPP_LIB "${YAML_CPP_LIBRARY}")
+    endif()
+
+    if(DEFINED yaml-cpp_INCLUDE_DIRS)
+      set(YAML_CPP_INCLUDE_DIR "${yaml-cpp_INCLUDE_DIRS}")
+    elseif(DEFINED YAML_CPP_INCLUDE_DIRS)
+      set(YAML_CPP_INCLUDE_DIR "${YAML_CPP_INCLUDE_DIRS}")
+    elseif(DEFINED yaml-cpp_INCLUDE_DIR)
+      set(YAML_CPP_INCLUDE_DIR "${yaml-cpp_INCLUDE_DIR}")
+    elseif(DEFINED YAML_CPP_INCLUDE_DIR)
+      set(YAML_CPP_INCLUDE_DIR "${YAML_CPP_INCLUDE_DIR}")
+    endif()
+
+    # If we have the variables, create the target
+    if(YAML_CPP_LIB AND YAML_CPP_INCLUDE_DIR)
+      add_library(yaml-cpp::yaml-cpp UNKNOWN IMPORTED)
+      set_target_properties(yaml-cpp::yaml-cpp PROPERTIES
+        IMPORTED_LOCATION "${YAML_CPP_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR}")
+    else()
+      # Fallback: try to find it manually
+      find_library(YAML_CPP_LIBRARY_FOUND
+        NAMES yaml-cpp libyaml-cpp
+        PATHS /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu
+      )
+      find_path(YAML_CPP_INCLUDE_DIR_FOUND
+        NAMES yaml-cpp/yaml.h
+        PATHS /usr/include /usr/local/include
+      )
+      if(YAML_CPP_LIBRARY_FOUND AND YAML_CPP_INCLUDE_DIR_FOUND)
+        add_library(yaml-cpp::yaml-cpp UNKNOWN IMPORTED)
+        set_target_properties(yaml-cpp::yaml-cpp PROPERTIES
+          IMPORTED_LOCATION "${YAML_CPP_LIBRARY_FOUND}"
+          INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR_FOUND}")
+      else()
+        message(FATAL_ERROR "yaml-cpp::yaml-cpp target not found and could not be created")
+      endif()
+    endif()
+  else()
+    message(FATAL_ERROR "yaml-cpp package not found. Please install libyaml-cpp-dev")
+  endif()
+endif()
+
 find_package(nav2_ros_common REQUIRED)
 find_package(bond REQUIRED)
 
 nav2_package()
+
+# Get workspace nav2_util include directories to ensure workspace version is used
+get_target_property(nav2_util_include_dirs nav2_util::nav2_util_core INTERFACE_INCLUDE_DIRECTORIES)
 
 set(executable_name opennav_docking)
 set(library_name ${executable_name}_core)
@@ -59,6 +125,12 @@ target_include_directories(${library_name}
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
+# Ensure workspace nav2_util header is found before system version
+if(nav2_util_include_dirs)
+  target_include_directories(${library_name} PRIVATE
+    $<BUILD_INTERFACE:${nav2_util_include_dirs}>
+  )
+endif()
 target_link_libraries(${library_name} PUBLIC
   angles::angles
   controller
