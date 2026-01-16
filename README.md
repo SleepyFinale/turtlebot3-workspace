@@ -29,11 +29,13 @@ This workspace contains editable TurtleBot3 packages for ROS 2 Humble, configure
 Before setting up the workspace, you need Ubuntu 22.04 LTS Desktop installed on your Remote PC.
 
 **Download the Ubuntu 22.04 LTS Desktop image:**
-- Visit: https://releases.ubuntu.com/22.04/
+
+- Visit: <https://releases.ubuntu.com/22.04/>
 - Download the **64-bit PC (AMD64) desktop image** (`ubuntu-22.04.5-desktop-amd64.iso`)
 
 **Installation instructions:**
-- Follow the official Ubuntu installation guide: https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview
+
+- Follow the official Ubuntu installation guide: <https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview>
 - The guide covers:
   - Creating a bootable USB stick
   - Booting from USB
@@ -41,6 +43,7 @@ Before setting up the workspace, you need Ubuntu 22.04 LTS Desktop installed on 
   - Completing the installation
 
 **System requirements:**
+
 - At least 25GB of storage space
 - A flash drive (12GB or above recommended) for the installation media
 - At least 1024MiB of RAM
@@ -52,15 +55,18 @@ Before setting up the workspace, you need Ubuntu 22.04 LTS Desktop installed on 
 After installing Ubuntu 22.04 LTS, install ROS 2 Humble on your Remote PC.
 
 **Follow the official ROS 2 installation guide:**
-- https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html
+
+- <https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html>
 
 The installation process includes:
+
 1. Setting up locale and sources
 2. Installing ROS 2 packages
 3. Setting up the environment
 4. Installing additional tools (colcon, argcomplete, etc.)
 
 **Quick summary:**
+
 ```bash
 # Set locale
 sudo apt update && sudo apt install locales
@@ -103,6 +109,7 @@ cd ~/turtlebot3_ws
 ```
 
 This repository contains all the necessary packages for TurtleBot3 autonomous exploration:
+
 - TurtleBot3 core packages (DynamixelSDK, turtlebot3_msgs, turtlebot3)
 - Navigation2 configuration
 - Explore Lite for autonomous exploration
@@ -119,18 +126,21 @@ The workspace includes two build scripts to help you build and source everything
 #### `clean_rebuild.sh`
 
 Performs a complete clean rebuild of the entire workspace:
+
 - Removes all build artifacts (`build/`, `install/`, `log/` directories)
 - Checks for system dependencies
 - Builds all packages from scratch
 - Sources the workspace automatically after build
 
 **Usage:**
+
 ```bash
 cd ~/turtlebot3_ws
 ./clean_rebuild.sh
 ```
 
 **When to use:**
+
 - First-time setup
 - After major changes to multiple packages
 - When experiencing build issues that require a clean slate
@@ -139,6 +149,7 @@ cd ~/turtlebot3_ws
 #### `minimal_rebuild.sh`
 
 Performs a minimal rebuild of only essential packages:
+
 - Removes build artifacts
 - Builds only packages needed for:
   - `turtlebot3_bringup robot.launch.py`
@@ -146,12 +157,14 @@ Performs a minimal rebuild of only essential packages:
   - `explore_lite` (for the explorer)
 
 **Usage:**
+
 ```bash
 cd ~/turtlebot3_ws
 ./minimal_rebuild.sh
 ```
 
 **When to use:**
+
 - After making small changes to specific packages
 - Faster rebuild times during development
 - When you only need to update navigation or exploration components
@@ -171,6 +184,7 @@ source install/setup.bash
 ROS 2 uses `ROS_DOMAIN_ID` to separate different robot networks. Each robot and the Remote PC must use the **same** `ROS_DOMAIN_ID` value to communicate.
 
 **Robot Domain IDs:**
+
 - **Blinky**: `ROS_DOMAIN_ID=30`
 - **Pinky**: `ROS_DOMAIN_ID=31`
 - **Inky**: `ROS_DOMAIN_ID=32`
@@ -179,6 +193,7 @@ ROS 2 uses `ROS_DOMAIN_ID` to separate different robot networks. Each robot and 
 **Setting ROS_DOMAIN_ID:**
 
 **On Remote PC (for each robot connection):**
+
 ```bash
 # For Blinky
 export ROS_DOMAIN_ID=30
@@ -194,6 +209,7 @@ export ROS_DOMAIN_ID=33
 ```
 
 **To make it permanent (add to `~/.bashrc`):**
+
 ```bash
 # For Blinky (example)
 echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
@@ -201,11 +217,13 @@ source ~/.bashrc
 ```
 
 **Verify it's set:**
+
 ```bash
 echo $ROS_DOMAIN_ID
 ```
 
-**Important:** 
+**Important:**
+
 - If `ROS_DOMAIN_ID` is not set, ROS 2 defaults to 0
 - The Remote PC and robot must use the **same** `ROS_DOMAIN_ID` value
 - When switching between robots, make sure to update `ROS_DOMAIN_ID` accordingly
@@ -217,6 +235,7 @@ echo $ROS_DOMAIN_ID
 This section describes the steps to connect to a TurtleBot3 robot and start autonomous exploration. The example uses **Blinky** (ROS_DOMAIN_ID=30), but the same process applies to other robots with their respective domain IDs.
 
 **Prerequisites:**
+
 - Robot is powered on and connected to the network
 - Remote PC has ROS 2 Humble installed
 - Workspace is built (see [Building the Workspace](#building-the-workspace))
@@ -231,6 +250,7 @@ This section describes the steps to connect to a TurtleBot3 robot and start auto
 **Purpose:** Connect to the robot and launch the robot bringup node.
 
 **Commands:**
+
 ```bash
 # Set ROS_DOMAIN_ID for Blinky
 export ROS_DOMAIN_ID=30
@@ -246,7 +266,8 @@ ros2 launch turtlebot3_bringup robot.launch.py
 ```
 
 **Expected output (if working correctly):**
-```
+
+```text
 [INFO] [turtlebot3_node]: TurtleBot3 node has been initialized
 [INFO] [turtlebot3_node]: Subscribed to /cmd_vel
 [INFO] [turtlebot3_node]: Publishing to /odom, /joint_states
@@ -254,12 +275,15 @@ ros2 launch turtlebot3_bringup robot.launch.py
 ```
 
 **What to look for:**
+
 - No error messages about device connections
 - Messages indicating successful initialization
 - Topics should be publishing: `/scan`, `/odom`, `/joint_states`
 - Robot should respond to velocity commands
 
 **Verification:**
+
+```bash
 ```bash
 # In a new terminal on Remote PC (with ROS_DOMAIN_ID=30 set)
 ros2 topic list | grep -E "(scan|odom|joint_states)"
@@ -273,6 +297,7 @@ ros2 topic echo /scan --once  # Should show laser scan data
 **Purpose:** Creates the map as the robot explores using SLAM (Simultaneous Localization and Mapping).
 
 **Commands:**
+
 ```bash
 # Set ROS_DOMAIN_ID for Blinky
 export ROS_DOMAIN_ID=30
@@ -286,7 +311,8 @@ ros2 launch slam_toolbox online_async_launch.py
 ```
 
 **Expected output (if working correctly):**
-```
+
+```text
 [INFO] [slam_toolbox]: Node using stack size 40000000
 [INFO] [slam_toolbox]: Using solver plugin solver_plugins::CeresSolver
 [INFO] [slam_toolbox]: Registering sensor: [Custom Described Lidar]
@@ -294,17 +320,20 @@ ros2 launch slam_toolbox online_async_launch.py
 ```
 
 **What to look for:**
+
 - No error messages about missing topics or nodes
 - Messages indicating SLAM Toolbox has started
 - After 20-30 seconds, the `/map` topic should appear and start publishing
 
 **Important:** Wait 20-30 seconds after starting SLAM Toolbox before proceeding to Terminal 3. SLAM needs time to:
+
 - Receive scan data from the robot
 - Process several scan messages
 - Build the initial map
 - Start publishing the `/map` topic
 
 **Verification:**
+
 ```bash
 # Wait 20-30 seconds, then check:
 ros2 topic list | grep "^/map$"  # Should show /map topic
@@ -318,6 +347,7 @@ ros2 topic echo /map --once      # Should show map data (may need to wait a few 
 **Purpose:** Provides navigation and path planning capabilities, including obstacle avoidance and goal execution.
 
 **Commands:**
+
 ```bash
 # Set ROS_DOMAIN_ID for Blinky
 export ROS_DOMAIN_ID=30
@@ -334,7 +364,8 @@ ros2 launch turtlebot3_navigation2 navigation2.launch.py
 ```
 
 **Expected output (if working correctly):**
-```
+
+```text
 [INFO] [nav2_controller]: Creating controller server
 [INFO] [nav2_planner]: Creating planner server
 [INFO] [nav2_recoveries]: Creating recovery server
@@ -344,27 +375,32 @@ ros2 launch turtlebot3_navigation2 navigation2.launch.py
 ```
 
 **What to look for:**
+
 - Nav2 nodes starting successfully
 - RViz window should open automatically
 - You may see warnings about AMCL needing initial pose (this is normal)
 - After 20-30 seconds, costmap topics should be available
 
-**Important:** 
+**Important:**
+
 - Wait 20-30 seconds after starting Nav2 before proceeding to Terminal 4
 - **Set the initial pose in RViz** (see below) - this is required for Nav2 to work correctly
 - You may see warnings like "AMCL cannot publish a pose" until you set the initial pose
 
 **Setting Initial Pose in RViz:**
+
 1. In the RViz window that opened, click the **"2D Pose Estimate"** button (or press `P`)
 2. Click on the map where the robot is actually located
 3. Drag to set the robot's orientation (which direction it's facing)
 
 **After setting initial pose:**
+
 - AMCL warnings should stop
 - TF transform `map -> base_link` should work
 - Nav2 should be ready for navigation
 
 **Verification:**
+
 ```bash
 # Check Nav2 nodes
 ros2 node list | grep nav2
@@ -383,6 +419,7 @@ ros2 run tf2_ros tf2_echo map base_link  # Should work after initial pose is set
 **Purpose:** Detects frontiers (unexplored areas) and sends exploration goals to Nav2 for autonomous exploration.
 
 **Commands:**
+
 ```bash
 # Set ROS_DOMAIN_ID for Blinky
 export ROS_DOMAIN_ID=30
@@ -395,7 +432,8 @@ cd ~/turtlebot3_ws
 ```
 
 **Expected output (if working correctly):**
-```
+
+```text
 [INFO] [explore_node]: Waiting for costmap to become available, topic: /global_costmap/costmap
 [INFO] [explore_node]: Costmap available, starting exploration
 [INFO] [explore_node]: Exploration started
@@ -404,17 +442,20 @@ cd ~/turtlebot3_ws
 ```
 
 **What to look for:**
+
 - Explorer waits for Nav2's costmap (this is normal - takes 20-40 seconds after Nav2 starts)
 - Once costmap is ready, you'll see "Exploration started"
 - Explorer will begin finding frontiers and sending goals
 - Robot should start moving autonomously
 
-**Important:** 
+**Important:**
+
 - Start this **after** Nav2 is running and initialized (wait 20-30 seconds after starting Nav2)
 - The explorer automatically waits for the costmap - be patient
 - Total startup time from robot launch to exploration: ~60-90 seconds
 
 **Verification:**
+
 ```bash
 # Check explorer node
 ros2 node list | grep explore
@@ -434,27 +475,33 @@ ros2 topic echo /goal_pose  # Should see goals being published
 #### 1. ROS_DOMAIN_ID Mismatch (Topics Not Visible)
 
 **Symptoms:**
+
 - Topics from robot not visible on Remote PC (or vice versa)
 - `ros2 topic list` shows different topics on robot vs Remote PC
 - Nodes can't see each other
 
 **Solution:**
+
 1. Check `ROS_DOMAIN_ID` on robot:
+
    ```bash
    echo $ROS_DOMAIN_ID
    ```
 
 2. Check `ROS_DOMAIN_ID` on Remote PC:
+
    ```bash
    echo $ROS_DOMAIN_ID
    ```
 
 3. Set the same value on both (e.g., 30 for Blinky):
+
    ```bash
    export ROS_DOMAIN_ID=30
    ```
 
 4. Make it permanent:
+
    ```bash
    echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
    source ~/.bashrc
@@ -471,6 +518,7 @@ ros2 topic echo /goal_pose  # Should see goals being published
 **Cause:** AMCL (localization) doesn't know where the robot is on the map yet.
 
 **Solution:**
+
 1. Open RViz (should open automatically with Nav2 launch)
 2. Click **"2D Pose Estimate"** button in RViz toolbar (or press `P`)
 3. Click on the map where the robot is actually located
@@ -479,10 +527,12 @@ ros2 topic echo /goal_pose  # Should see goals being published
 The warning should stop and AMCL will start localizing the robot.
 
 **Alternative (command line):**
+
 ```bash
 ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped \
   '{header: {frame_id: "map"}, pose: {pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}'
 ```
+
 Adjust x, y, z, w values to match robot's actual position.
 
 ---
@@ -492,11 +542,13 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** Nav2 doesn't know where the robot is on the map yet, so it can't determine if the sensor is within map bounds.
 
 **Symptoms:**
-```
+
+```text
 [WARN] [global_costmap.global_costmap]: Sensor origin at (-0.03, -0.00) is out of map bounds (0.00, 0.00) to (4.98, 4.98)
 ```
 
 **Solution:**
+
 1. Set the initial pose in RViz (see issue #2 above)
 2. Once AMCL knows where the robot is, the warnings will stop
 3. Make sure SLAM has published the map first: `ros2 topic echo /map --once`
@@ -510,23 +562,30 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** SLAM Toolbox not receiving scan data, not initialized yet, or needs more time.
 
 **Symptoms:**
+
 - `/map` topic doesn't appear in `ros2 topic list`
 - `/map` topic exists but `ros2 topic echo /map --once` shows "does not appear to be published yet"
 
 **Solution:**
+
 1. Check scan data is available:
+
    ```bash
    ros2 topic echo /scan --once
    ```
+
    Should show laser scan data. If not, check robot connection.
 
 2. Check scan frequency:
+
    ```bash
    ros2 topic hz /scan
    ```
+
    Should show ~10 Hz (depends on lidar). If 0 Hz, scan isn't publishing.
 
 3. Move robot slightly to help SLAM initialize:
+
    ```bash
    ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
    ```
@@ -536,9 +595,11 @@ Adjust x, y, z, w values to match robot's actual position.
    - This is normal - be patient!
 
 5. Verify SLAM is running:
+
    ```bash
    ros2 node list | grep slam
    ```
+
    Should show `async_slam_toolbox_node`
 
 6. Check SLAM logs for errors in the terminal where you launched it
@@ -552,11 +613,13 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** Nav2 costmap hasn't initialized yet (normal - takes 20-40 seconds).
 
 **Symptoms:**
-```
+
+```text
 [INFO] [explore_node]: Waiting for costmap to become available, topic: /global_costmap/costmap
 ```
 
 **Solution:**
+
 - **This is normal!** The explorer is designed to wait. Just be patient.
 - The explorer will automatically connect once Nav2's costmap is ready.
 - You'll see: `[INFO] [explore_node]: Exploration started` when ready.
@@ -570,6 +633,7 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** Nav2 started before SLAM Toolbox initialized, or odometry isn't publishing, or initial pose not set.
 
 **Solution:**
+
 1. Set initial pose first (see issue #2 above)
 2. Stop Nav2 (Ctrl+C)
 3. Verify SLAM Toolbox is running: `ros2 node list | grep slam`
@@ -586,6 +650,7 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** System still initializing, or map too small.
 
 **Solution:**
+
 1. Wait 60-90 seconds total from startup
 2. Check explorer status: Should see `[INFO] [explore_node]: Exploration started`
 3. Check goals: `ros2 topic echo /goal_pose` (should see goals being sent)
@@ -600,6 +665,7 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** Nav2 is loading a default static map file, and SLAM Toolbox is also publishing its live map. Both appear in RViz.
 
 **Solution:**
+
 1. **Option A: Hide static map in RViz:**
    - In RViz, find the "Map" display (there may be two)
    - Disable/hide the one showing the default test map
@@ -618,7 +684,9 @@ Adjust x, y, z, w values to match robot's actual position.
 **Cause:** Odometry needs robot movement to initialize, or parameters not loaded.
 
 **Solution:**
+
 1. Move robot slightly:
+
    ```bash
    ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
    ```
@@ -732,6 +800,7 @@ echo $ROS_DOMAIN_ID
 ## Workspace Structure
 
 This workspace includes:
+
 - **TurtleBot3 packages**: Core robot packages from ROBOTIS
 - **Navigation2**: Navigation stack (uses system packages)
 - **SLAM Toolbox**: For mapping (installed via apt)
