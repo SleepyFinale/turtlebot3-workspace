@@ -236,8 +236,8 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 1.0
-      publish_frequency: 1.0
+      update_frequency: 5.0  # Increased from 1.0 to 5.0 Hz for faster map updates during exploration
+      publish_frequency: 2.0  # Increased from 1.0 to 2.0 Hz to publish updates more frequently
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: True
@@ -282,6 +282,7 @@ global_costmap:
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+        subscribe_to_updates: True  # Enable incremental map updates for faster map updates
         use_maximum: false  # Use overwrite to preserve unknown space for frontier detection
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"

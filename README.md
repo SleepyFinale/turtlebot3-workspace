@@ -307,7 +307,44 @@ source /opt/ros/humble/setup.bash
 export TURTLEBOT3_MODEL=burger
 
 # Launch SLAM Toolbox
-ros2 launch slam_toolbox online_async_launch.py
+# IMPORTANT: If you see "LaserRangeScan contains X range readings, expected Y" errors,
+# you need to use the laser scan normalizer first (see below).
+
+# For faster map updates during exploration, use the fast config:
+# Note: Use absolute path or run from workspace root
+cd ~/turtlebot3_ws
+ros2 launch slam_toolbox online_async_launch.py \
+  slam_params_file:=$(pwd)/src/turtlebot3/turtlebot3_navigation2/param/humble/mapper_params_online_async_fast.yaml
+
+# Or use default (slower map updates):
+# ros2 launch slam_toolbox online_async_launch.py
+```
+
+**If you see "LaserRangeScan contains X range readings, expected Y" errors:**
+
+This means your laser sends variable numbers of readings (216-230), causing slam_toolbox to reject most scans. This prevents the map from updating! Use the laser scan normalizer:
+
+**Easy way (recommended):**
+```bash
+cd ~/turtlebot3_ws
+./start_slam_with_normalizer.sh
+```
+
+**Manual way:**
+```bash
+# Terminal 1: Start the laser scan normalizer
+cd ~/turtlebot3_ws
+source install/setup.bash
+python3 src/turtlebot3/turtlebot3_navigation2/scripts/normalize_laser_scan.py
+
+# Terminal 2: Launch SLAM Toolbox using the normalized scan
+cd ~/turtlebot3_ws
+ros2 launch slam_toolbox online_async_launch.py \
+  slam_params_file:=$(pwd)/src/turtlebot3/turtlebot3_navigation2/param/humble/mapper_params_online_async_fast.yaml \
+  scan_topic:=/scan_normalized
+```
+
+The normalizer will automatically adjust all scans to have exactly 226 readings (matching what slam_toolbox expects), allowing scans to be processed and the map to update properly.
 ```
 
 **Expected output (if working correctly):**
