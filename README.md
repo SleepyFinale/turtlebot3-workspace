@@ -85,7 +85,7 @@ sudo add-apt-repository "deb [arch=$(dpkg --print-architecture)] http://packages
 sudo apt update
 sudo apt install ros-humble-desktop
 
-# Install Navigation2 packages (required for explore_lite)
+# Install Navigation2 packages (required - workspace uses system packages)
 sudo apt install ros-humble-navigation2
 
 # Install development tools
@@ -95,7 +95,13 @@ sudo apt install python3-colcon-common-extensions python3-argcomplete
 source /opt/ros/humble/setup.bash
 ```
 
-**Note:** This workspace uses system Navigation2 packages (installed via apt) rather than building them from source. The workspace contains TurtleBot3 packages and Explore Lite, which depend on Navigation2 being available as system packages.
+**Note:** This workspace uses system Navigation2 packages (installed via apt) for faster builds. The workspace contains:
+- TurtleBot3 core packages
+- Navigation2 configuration and launch files
+- Explore Lite for autonomous exploration
+- Custom launch files and scripts
+
+The Navigation2 source code is included in the repository for reference, but the build scripts use the system-installed packages instead.
 
 ---
 
@@ -539,6 +545,8 @@ You should see `nav2_msgs` in the list. Then try building again:
 ```bash
 ./clean_rebuild.sh
 ```
+
+**Note:** The build scripts now automatically check for Navigation2 packages and will provide a helpful error message if they're missing.
 
 ---
 

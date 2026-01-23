@@ -120,12 +120,64 @@ echo "  - To override: PARALLEL_JOBS=N ./clean_rebuild.sh"
 echo ""
 
 # List of Navigation2 packages to ignore (use system packages instead)
+# Only include packages that actually exist in the workspace to avoid warnings
 NAV2_IGNORE_PACKAGES="nav2_common nav_2d_msgs dwb_msgs nav2_msgs nav2_voxel_grid nav2_simple_commander nav2_util nav2_amcl nav2_behavior_tree nav2_lifecycle_manager nav2_map_server nav2_velocity_smoother nav_2d_utils nav2_costmap_2d costmap_queue nav2_collision_monitor nav2_core dwb_core nav2_behaviors nav2_bt_navigator nav2_constrained_smoother nav2_controller nav2_mppi_controller nav2_navfn_planner nav2_planner nav2_regulated_pure_pursuit_controller nav2_route nav2_smac_planner nav2_smoother nav2_theta_star_planner nav2_waypoint_follower dwb_critics dwb_plugins nav2_rotation_shim_controller nav2_rviz_plugins nav2_dwb_controller navigation2 nav2_bringup nav2_ros_common opennav_docking_core opennav_docking_bt nav2_graceful_controller opennav_docking opennav_following"
 
+# Check if Navigation2 system packages are installed
+echo ""
+echo "Step 3.5: Checking for Navigation2 system packages..."
+if ! ros2 pkg list 2>/dev/null | grep -q "^nav2_msgs$"; then
+    echo "  ✗ Navigation2 packages not found!"
+    echo ""
+    echo "  This workspace uses system Navigation2 packages (installed via apt)."
+    echo "  Please install Navigation2 before building:"
+    echo ""
+    echo "    sudo apt update"
+    echo "    sudo apt install ros-humble-navigation2"
+    echo ""
+    echo "  After installing, source ROS again and retry:"
+    echo "    source /opt/ros/humble/setup.bash"
+    echo "    ./clean_rebuild.sh"
+    echo ""
+    exit 1
+else
+    echo "  ✓ Navigation2 packages found"
+fi
+
+# Filter ignore list to only include packages that actually exist in workspace
+# This prevents warnings about unknown packages
+if [ -d "src/navigation2" ]; then
+    # Get list of all packages that colcon can find, then filter to only Navigation2 packages
+    ALL_PACKAGES=$(colcon list --names-only 2>/dev/null || echo "")
+    if [ -n "$ALL_PACKAGES" ]; then
+        # Filter to only packages that exist in workspace and are in our ignore list
+        EXISTING_NAV2_PACKAGES=""
+        for pkg in $NAV2_IGNORE_PACKAGES; do
+            if echo "$ALL_PACKAGES" | grep -q "^${pkg}$"; then
+                EXISTING_NAV2_PACKAGES="${EXISTING_NAV2_PACKAGES} ${pkg}"
+            fi
+        done
+        NAV2_IGNORE_PACKAGES=$(echo $EXISTING_NAV2_PACKAGES | sed 's/^ *//;s/ *$//')
+    else
+        # If colcon can't list packages, set to empty to avoid warnings
+        NAV2_IGNORE_PACKAGES=""
+    fi
+else
+    # Navigation2 not in workspace, so nothing to ignore
+    NAV2_IGNORE_PACKAGES=""
+fi
+
 # Build all packages, but ignore Navigation2 packages in workspace (use system packages)
-colcon build --symlink-install --parallel-workers $PARALLEL_JOBS \
-    --cmake-args -DBUILD_TESTING=OFF \
-    --packages-ignore $NAV2_IGNORE_PACKAGES
+if [ -n "$NAV2_IGNORE_PACKAGES" ]; then
+    colcon build --symlink-install --parallel-workers $PARALLEL_JOBS \
+        --cmake-args -DBUILD_TESTING=OFF \
+        --packages-ignore $NAV2_IGNORE_PACKAGES
+else
+    # If no Navigation2 packages to ignore, just build normally
+    # (Navigation2 directory might not exist or might be gitignored)
+    colcon build --symlink-install --parallel-workers $PARALLEL_JOBS \
+        --cmake-args -DBUILD_TESTING=OFF
+fi
 
 # Check build result
 if [ $? -eq 0 ]; then
