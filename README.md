@@ -96,6 +96,7 @@ source /opt/ros/humble/setup.bash
 ```
 
 **Note:** This workspace uses system Navigation2 packages (installed via apt) for faster builds. The workspace contains:
+
 - TurtleBot3 core packages
 - Navigation2 configuration and launch files
 - Explore Lite for autonomous exploration
