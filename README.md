@@ -278,7 +278,6 @@ ros2 launch turtlebot3_bringup robot.launch.py
 **Expected output (if working correctly):**
 
 ```text
-ubuntu@blinky:~$ ros2 launch turtlebot3_bringup robot.launch.py
 [INFO] [launch]: All log files can be found below /home/ubuntu/.ros/log/<date-time>-blinky-<pid>
 [INFO] [launch]: Default logging verbosity is set to INFO
 urdf_file_name : turtlebot3_burger.urdf
@@ -388,7 +387,6 @@ ros2 launch slam_toolbox online_async_launch.py \
 **Expected output (if working correctly):**
 
 ```text
-schen08@central:~/turtlebot3_ws$ ./start_slam_with_normalizer.sh
 ==========================================
 Starting SLAM with Laser Scan Normalizer
 ==========================================
@@ -466,7 +464,6 @@ ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=Fals
 **Expected output (if working correctly):**
 
 ```text
-schen08@central:~/turtlebot3_ws$ ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=False
 [INFO] [launch]: All log files can be found below /home/schen08/.ros/log/<date-time>-central-<pid>
 [INFO] [launch]: Default logging verbosity is set to INFO
 [INFO] [python3-1]: process started with pid [<pid>]
@@ -543,7 +540,6 @@ cd ~/turtlebot3_ws
 **Expected output (if working correctly):**
 
 ```text
-schen08@central:~/turtlebot3_ws$ ./start_explorer_simple.sh
 Starting explorer with SLAM map (direct from slam_toolbox)...
 Explorer will wait for /map topic to become available.
 
