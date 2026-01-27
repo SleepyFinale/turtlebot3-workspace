@@ -278,10 +278,44 @@ ros2 launch turtlebot3_bringup robot.launch.py
 **Expected output (if working correctly):**
 
 ```text
-[INFO] [turtlebot3_node]: TurtleBot3 node has been initialized
-[INFO] [turtlebot3_node]: Subscribed to /cmd_vel
-[INFO] [turtlebot3_node]: Publishing to /odom, /joint_states
-[INFO] [turtlebot3_node]: Publishing to /scan
+ubuntu@blinky:~$ ros2 launch turtlebot3_bringup robot.launch.py
+[INFO] [launch]: All log files can be found below /home/ubuntu/.ros/log/<date-time>-blinky-<pid>
+[INFO] [launch]: Default logging verbosity is set to INFO
+urdf_file_name : turtlebot3_burger.urdf
+[INFO] [robot_state_publisher-1]: process started with pid [<pid>]
+[INFO] [ld08_driver-2]: process started with pid [<pid>]
+[INFO] [turtlebot3_ros-3]: process started with pid [<pid>]
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Init TurtleBot3 Node Main
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Init DynamixelSDKWrapper
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment base_footprint
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment base_scan
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment caster_back_link
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment wheel_left_link
+[robot_state_publisher-1] [INFO] [...] [robot_state_publisher]: got segment wheel_right_link
+[turtlebot3_ros-3] [INFO] [...] [DynamixelSDKWrapper]: Succeeded to open the port(/dev/ttyACM0)!
+[turtlebot3_ros-3] [INFO] [...] [DynamixelSDKWrapper]: Succeeded to change the baudrate!
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Start Calibration of Gyro
+[ld08_driver-2] /dev/ttyUSB0    CP2102 USB to UART Bridge Controller
+[ld08_driver-2] /dev/ttyACM0    OpenCR Virtual ComPort in FS Mode
+[ld08_driver-2] FOUND LDS-02
+[ld08_driver-2] LDS-02 started successfully
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Calibration End
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Add Motors
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Add Wheels
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Add Sensors
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create battery state publisher
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create imu publisher
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create sensor state publisher
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create joint state publisher
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Add Devices
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create motor power server
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create reset server
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Succeeded to create sound server
+[turtlebot3_ros-3] [INFO] [...] [turtlebot3_node]: Run!
+[turtlebot3_ros-3] [INFO] [...] [diff_drive_controller]: Init Odometry
+[turtlebot3_ros-3] [INFO] [...] [diff_drive_controller]: Run!
 ```
 
 **What to look for:**
@@ -354,10 +388,32 @@ ros2 launch slam_toolbox online_async_launch.py \
 **Expected output (if working correctly):**
 
 ```text
-[INFO] [slam_toolbox]: Node using stack size 40000000
-[INFO] [slam_toolbox]: Using solver plugin solver_plugins::CeresSolver
-[INFO] [slam_toolbox]: Registering sensor: [Custom Described Lidar]
-[INFO] [slam_toolbox]: Slam Toolbox started
+schen08@central:~/turtlebot3_ws$ ./start_slam_with_normalizer.sh
+==========================================
+Starting SLAM with Laser Scan Normalizer
+==========================================
+
+This will:
+  1. Start laser scan normalizer (fixes variable reading counts)
+  2. Start SLAM Toolbox with fast config (0.5s map updates)
+
+Press Ctrl+C to stop both processes
+
+Starting laser scan normalizer...
+[INFO] [...] [laser_scan_normalizer]: Laser scan normalizer started: /scan -> /scan_normalized (normalizing to 228 readings)
+[INFO] [...] [laser_scan_normalizer]: Scan <N>: received <N_readings> readings, normalizing to 228
+[INFO] [...] [laser_scan_normalizer]: Scan <N>: published 228 readings (target: 228)
+... (repeats for each incoming scan; received counts may vary) ...
+Starting SLAM Toolbox with fast config...
+Using normalized scan topic: /scan_normalized
+
+use_sim_time: False
+[INFO] [launch]: All log files can be found below /home/schen08/.ros/log/<date-time>-central-<pid>
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [async_slam_toolbox_node-1]: process started with pid [<pid>]
+[async_slam_toolbox_node-1] [INFO] [...] [slam_toolbox]: Node using stack size 40000000
+[async_slam_toolbox_node-1] [INFO] [...] [slam_toolbox]: Using solver plugin solver_plugins::CeresSolver
+[async_slam_toolbox_node-1] [INFO] [...] [slam_toolbox]: CeresSolver: Using SCHUR_JACOBI preconditioner.
 ```
 
 **What to look for:**
@@ -410,12 +466,33 @@ ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=Fals
 **Expected output (if working correctly):**
 
 ```text
-[INFO] [nav2_controller]: Creating controller server
-[INFO] [nav2_planner]: Creating planner server
-[INFO] [nav2_recoveries]: Creating recovery server
-[INFO] [nav2_bt_navigator]: Creating BT navigator
-[INFO] [nav2_lifecycle_manager]: Creating lifecycle manager
-[INFO] [rviz2]: RViz2 started
+schen08@central:~/turtlebot3_ws$ ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=False
+[INFO] [launch]: All log files can be found below /home/schen08/.ros/log/<date-time>-central-<pid>
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [python3-1]: process started with pid [<pid>]
+[INFO] [component_container_isolated-2]: process started with pid [<pid>]
+[INFO] [map_saver_server-3]: process started with pid [<pid>]
+[INFO] [lifecycle_manager-4]: process started with pid [<pid>]
+[INFO] [sync_slam_toolbox_node-5]: process started with pid [<pid>]
+[INFO] [rviz2-6]: process started with pid [<pid>]
+[rviz2-6] Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
+[sync_slam_toolbox_node-5] [INFO] [...] [slam_toolbox]: Node using stack size 40000000
+[lifecycle_manager-4] [INFO] [...] [lifecycle_manager_slam]: Starting managed nodes bringup...
+[map_saver_server-3] [INFO] [...] [map_saver]: Creating
+[map_saver_server-3] [INFO] [...] [map_saver]: Configuring
+[lifecycle_manager-4] [INFO] [...] [lifecycle_manager_slam]: Managed nodes are active
+[sync_slam_toolbox_node-5] [INFO] [...] [slam_toolbox]: Using solver plugin solver_plugins::CeresSolver
+[python3-1] [INFO] [...] [wait_for_tf]: Waiting for TF. Need map->odom and odom->(one of ['base_footprint', 'base_link']). Timeout: 30.0s
+[python3-1] [INFO] [...] [wait_for_tf]: TF ready: odom -> base_footprint
+[python3-1] [INFO] [...] [wait_for_tf]: TF tree looks ready.
+[INFO] [python3-1]: process has finished cleanly [pid <pid>]
+[component_container_isolated-2] [INFO] [...] [lifecycle_manager_navigation]: Managed nodes are active
+[component_container_isolated-2] [INFO] [...] [lifecycle_manager_navigation]: Creating bond timer...
+
+# Optional (may appear depending on RViz / drivers / installed plugins):
+[rviz2-6] [ERROR] [...] [rviz2]: PluginlibFactory: The plugin for class 'nav2_rviz_plugins/Selector' failed to load. (plugin not installed)
+[rviz2-6] [ERROR] [...] [rviz2]: PluginlibFactory: The plugin for class 'nav2_rviz_plugins/Docking' failed to load. (plugin not installed)
+[rviz2-6] [ERROR] [...] [rviz2]: ... GLSL link result: active samplers with a different type refer to the same texture image unit
 ```
 
 **What to look for:**
@@ -466,19 +543,37 @@ cd ~/turtlebot3_ws
 **Expected output (if working correctly):**
 
 ```text
-[INFO] [explore_node]: Waiting for costmap to become available, topic: /global_costmap/costmap
-[INFO] [explore_node]: Costmap available, starting exploration
-[INFO] [explore_node]: Exploration started
-[INFO] [explore_node]: Found frontier at (x, y)
-[INFO] [explore_node]: Sending goal to Nav2
+schen08@central:~/turtlebot3_ws$ ./start_explorer_simple.sh
+Starting explorer with SLAM map (direct from slam_toolbox)...
+Explorer will wait for /map topic to become available.
+
+Note: Using SLAM map directly instead of costmap for better frontier detection
+      when the map is still small or narrow.
+
+[INFO] [...] [explore_node]: Waiting for costmap to become available, topic: map
+[INFO] [...] [explore_node]: Received full costmap update: <W>x<H> cells, resolution=<res>, origin=(<ox>, <oy>)
+Warning: TF_OLD_DATA ignoring data from the past for frame odom at time <t> according to authority Authority undetectable
+Possible reasons are listed at http://wiki.ros.org/tf/Errors%20explained
+         at line <N> in ./src/buffer_core.cpp
+[INFO] [...] [explore_node]: Waiting to connect to move_base nav2 server
+[INFO] [...] [explore_node]: Connected to move_base nav2 server
+[INFO] [...] [explore_node]: Exploration timer started with frequency <Hz> Hz
+[INFO] [...] [explore_node]: Costmap stats - Unknown: <N> (<P>%), Free: <N> (<P>%), Occupied: <N> (<P>%), Total: <N>
+[INFO] [...] [explore_node]: Robot at costmap cell (<cx>, <cy>), value: <v> (0=free, 255=unknown, 254=lethal), pose: (<x>, <y>)
+[INFO] [...] [explore_node]: Nearby cells (radius <r>): <N> unknown, <N> free
+[INFO] [...] [explore_node]: Found <N> frontiers
+[INFO] [...] [explore_node]:   Frontier 0: cost=<c>, distance=<d>, size=<s>
+[INFO] [...] [explore_node]: After distance filtering: <N> valid frontiers (from <N> total)
+[INFO] [...] [explore_node]: Selected frontier at (<x>, <y>), cost=<c>, distance=<d>
+[INFO] [...] [explore_node]: Sending goal to move base nav2: (<x>, <y>)
+[INFO] [...] [explore_node]: Goal accepted by Nav2, navigating to (<x>, <y>)
 ```
 
 **What to look for:**
 
 - Explorer waits for Nav2's costmap (this is normal - takes 20-40 seconds after Nav2 starts)
-- Once costmap is ready, you'll see "Exploration started"
-- Explorer will begin finding frontiers and sending goals
-- Robot should start moving autonomously
+- You'll see it connect to the Nav2 action server (“Connected to move_base nav2 server”)
+- Once you see “Goal accepted by Nav2…”, the explorer is working and the robot should start moving autonomously
 
 **Important:**
 
@@ -504,7 +599,7 @@ ros2 topic echo /goal_pose  # Should see goals being published
 
 ### Common Issues and Solutions
 
-#### 0. Build Error: "Could not find a package configuration file provided by 'nav2_msgs'"
+#### 1. Build error: missing `nav2_msgs` / Navigation2 packages
 
 **Symptoms:**
 
@@ -517,9 +612,7 @@ CMake Error at CMakeLists.txt:40 (find_package):
 
 **Cause:** Navigation2 system packages are not installed. The workspace is configured to use system Navigation2 packages (installed via apt) rather than building them from source.
 
-**Solution:**
-
-Install Navigation2 packages:
+**Fix:**
 
 ```bash
 sudo apt update
@@ -547,7 +640,7 @@ You should see `nav2_msgs` in the list. Then try building again:
 
 ---
 
-#### 1. ROS_DOMAIN_ID Mismatch (Topics Not Visible)
+#### 2. `ROS_DOMAIN_ID` mismatch (topics not visible)
 
 **Symptoms:**
 
@@ -555,54 +648,40 @@ You should see `nav2_msgs` in the list. Then try building again:
 - `ros2 topic list` shows different topics on robot vs Remote PC
 - Nodes can't see each other
 
-**Solution:**
+**Fix:**
 
-1. Check `ROS_DOMAIN_ID` on robot:
+- **Step 1**: Check `ROS_DOMAIN_ID` on robot (SSH terminal).
 
-   ```bash
-   echo $ROS_DOMAIN_ID
-   ```
+  ```bash
+  echo $ROS_DOMAIN_ID
+  ```
 
-2. Check `ROS_DOMAIN_ID` on Remote PC:
+- **Step 2**: Check `ROS_DOMAIN_ID` on Remote PC (each terminal you launched nodes from).
 
-   ```bash
-   echo $ROS_DOMAIN_ID
-   ```
+  ```bash
+  echo $ROS_DOMAIN_ID
+  ```
 
-3. Set the same value on both (e.g., 30 for Blinky):
+- **Step 3**: Set the same value everywhere (example: Blinky = 30).
 
-   ```bash
-   export ROS_DOMAIN_ID=30
-   ```
+  ```bash
+  export ROS_DOMAIN_ID=30
+  ```
 
-4. Make it permanent:
+- **Step 4 (optional)**: Make it persistent.
 
-   ```bash
-   echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
-   source ~/.bashrc
-   ```
+  ```bash
+  echo "export ROS_DOMAIN_ID=30" >> ~/.bashrc
+  source ~/.bashrc
+  ```
 
-5. Restart terminals or source bashrc on both systems
+- **Step 5**: Restart terminals (or `source ~/.bashrc`) so every process uses the same domain.
 
 **Note:** If `ROS_DOMAIN_ID` is not set, ROS 2 defaults to 0. Make sure both robot and Remote PC explicitly set the same value!
 
 ---
 
-#### 2. AMCL Warning: "AMCL cannot publish a pose or update the transform. Please set the initial pose..."
-
-**Note (SLAM/exploration workflow):** If you are running `navigation2_slam.launch.py`, Nav2 uses SLAM localization and you normally will **not** use AMCL initial pose. If you see this warning, you likely launched the non-SLAM Nav2 launch by mistake.
-
-**Solution:**
-
-Use the SLAM Nav2 launch instead:
-
-```bash
-ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=False
-```
-
----
-
-#### 2. TF Errors: `base_link` / `base_footprint` frame does not exist
+#### 3. TF errors: `base_link` / `base_footprint` / `odom` frame does not exist
 
 **Symptoms:**
 
@@ -613,34 +692,52 @@ Invalid frame ID "base_footprint" ... frame does not exist
 
 **Cause:** Nav2 is starting before it has received the robot TF (`odom -> base_*`), or the Remote PC is not receiving TF from the robot (often a `ROS_DOMAIN_ID` mismatch).
 
-**Solution:**
+**Fix:**
 
-1. Verify your domain ID matches across all terminals:
+- **Step 1**: Confirm your `ROS_DOMAIN_ID` is correct in the terminal running Nav2/SLAM and in the SSH robot terminal.
 
-```bash
-echo $ROS_DOMAIN_ID
-```
+  ```bash
+  echo $ROS_DOMAIN_ID
+  ```
 
-1. Verify the Remote PC can see robot TF:
+- **Step 2**: Confirm TF is actually arriving on the Remote PC.
 
-```bash
-ros2 topic echo /tf --once
-```
+  ```bash
+  ros2 topic echo /tf --once
+  ```
 
-You should see at least `map -> odom` (from SLAM) and `odom -> base_*` (from robot bringup / odometry / robot_state_publisher).
+  You should see at least:
+  - `map -> odom` (from SLAM Toolbox)
+  - `odom -> base_*` (from robot bringup / odometry / robot_state_publisher)
 
-1. Verify the specific transforms:
+- **Step 3**: Confirm the exact transforms Nav2 needs.
 
-```bash
-ros2 run tf2_ros tf2_echo map odom
-ros2 run tf2_ros tf2_echo odom base_footprint
-```
+  ```bash
+  ros2 run tf2_ros tf2_echo map odom
+  ros2 run tf2_ros tf2_echo odom base_footprint
+  ```
 
 **Note:** `navigation2_slam.launch.py` includes a TF wait step (`wait_for_tf.py`) to reduce this startup race. If TF never appears, the issue is upstream (robot bringup or networking / DDS).
 
 ---
 
-#### 3. RViz errors about Nav2 panels / GLSL
+#### 4. AMCL warning: “Please set the initial pose…” (wrong launch file)
+
+**When this happens:** You launched the non-SLAM Nav2 bringup (AMCL/static-map workflow) while expecting SLAM-based exploration.
+
+**Fix (SLAM/exploration):**
+
+```bash
+ros2 launch turtlebot3_navigation2 navigation2_slam.launch.py use_sim_time:=False
+```
+
+**Fix (static map + AMCL):**
+
+- Use the non-SLAM bringup (e.g. `navigation2.launch.py`) and then set the initial pose in RViz.
+
+---
+
+#### 5. RViz errors about Nav2 panels / GLSL
 
 **Symptoms:**
 
@@ -660,7 +757,7 @@ LIBGL_ALWAYS_SOFTWARE=1 rviz2
 
 ---
 
-#### 4. (Optional) Manually setting initial pose (only for static-map AMCL workflows)
+#### 6. (Optional) Manually set initial pose (static map + AMCL only)
 
 ```bash
 ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped \
@@ -671,7 +768,7 @@ Adjust x, y, z, w values to match robot's actual position.
 
 ---
 
-#### 3. Costmap Warnings: "Sensor origin is out of map bounds"
+#### 7. Costmap warning: “Sensor origin is out of map bounds”
 
 **Cause:** Nav2 doesn't know where the robot is on the map yet, so it can't determine if the sensor is within map bounds.
 
@@ -681,17 +778,20 @@ Adjust x, y, z, w values to match robot's actual position.
 [WARN] [global_costmap.global_costmap]: Sensor origin at (-0.03, -0.00) is out of map bounds (0.00, 0.00) to (4.98, 4.98)
 ```
 
-**Solution:**
+**Fix:**
 
-1. Set the initial pose in RViz (see issue #2 above)
-2. Once AMCL knows where the robot is, the warnings will stop
-3. Make sure SLAM has published the map first: `ros2 topic echo /map --once`
+- Ensure SLAM is publishing a map:
+  - `ros2 topic echo /map --once`
+- Ensure TF is valid:
+  - `ros2 run tf2_ros tf2_echo map odom`
+  - `ros2 run tf2_ros tf2_echo odom base_footprint`
+- If you are using a static-map + AMCL workflow, set the initial pose in RViz (or use the manual initial pose command above).
 
 **Note:** This warning is normal and expected until you set the initial pose. It doesn't prevent Nav2 from working, but you should set the initial pose to resolve it.
 
 ---
 
-#### 4. No Map Appearing in SLAM (`/map` topic doesn't exist or not publishing)
+#### 8. No map appearing in SLAM (`/map` topic missing or not publishing)
 
 **Cause:** SLAM Toolbox not receiving scan data, not initialized yet, or needs more time.
 
@@ -700,49 +800,39 @@ Adjust x, y, z, w values to match robot's actual position.
 - `/map` topic doesn't appear in `ros2 topic list`
 - `/map` topic exists but `ros2 topic echo /map --once` shows "does not appear to be published yet"
 
-**Solution:**
+**Fix:**
 
-1. Check scan data is available:
+- **Step 1**: Check scan data is available.
 
-   ```bash
-   ros2 topic echo /scan --once
-   ```
+  ```bash
+  ros2 topic echo /scan --once
+  ```
 
-   Should show laser scan data. If not, check robot connection.
+- **Step 2**: Check scan frequency (should be ~10 Hz, depending on the lidar).
 
-2. Check scan frequency:
+  ```bash
+  ros2 topic hz /scan
+  ```
 
-   ```bash
-   ros2 topic hz /scan
-   ```
+- **Step 3**: If scans are present, give SLAM time to initialize (20–40 seconds is normal). Moving the robot slightly can help.
 
-   Should show ~10 Hz (depends on lidar). If 0 Hz, scan isn't publishing.
+  ```bash
+  ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
+  ```
 
-3. Move robot slightly to help SLAM initialize:
+- **Step 4**: Verify SLAM node is running.
 
-   ```bash
-   ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
-   ```
+  ```bash
+  ros2 node list | grep slam
+  ```
 
-4. Wait longer: SLAM needs 20-30 seconds AND several scan messages before publishing map
-   - The `/map` topic won't appear until SLAM has processed enough scans
-   - This is normal - be patient!
-
-5. Verify SLAM is running:
-
-   ```bash
-   ros2 node list | grep slam
-   ```
-
-   Should show `async_slam_toolbox_node`
-
-6. Check SLAM logs for errors in the terminal where you launched it
+- **Step 5**: Check the SLAM terminal for errors.
 
 **Note:** It's normal for `/map` to not appear immediately. SLAM Toolbox needs to receive scan data, process several scans, build initial map, then start publishing `/map` topic. This typically takes 20-40 seconds from when SLAM starts.
 
 ---
 
-#### 5. Explorer Waiting for Costmap
+#### 9. Explorer waiting for costmap
 
 **Cause:** Nav2 costmap hasn't initialized yet (normal - takes 20-40 seconds).
 
@@ -752,7 +842,7 @@ Adjust x, y, z, w values to match robot's actual position.
 [INFO] [explore_node]: Waiting for costmap to become available, topic: /global_costmap/costmap
 ```
 
-**Solution:**
+**Fix:**
 
 - **This is normal!** The explorer is designed to wait. Just be patient.
 - The explorer will automatically connect once Nav2's costmap is ready.
@@ -762,72 +852,54 @@ Adjust x, y, z, w values to match robot's actual position.
 
 ---
 
-#### 6. TF Errors: "Invalid frame ID 'odom' passed to canTransform"
-
-**Cause:** Nav2 started before SLAM Toolbox initialized, or odometry isn't publishing, or initial pose not set.
-
-**Solution:**
-
-1. Set initial pose first (see issue #2 above)
-2. Stop Nav2 (Ctrl+C)
-3. Verify SLAM Toolbox is running: `ros2 node list | grep slam`
-4. Wait 20-30 seconds for SLAM to initialize
-5. Check TF tree: `ros2 run tf2_ros tf2_echo map odom` (should work)
-6. Restart Nav2 and set initial pose again
-
-**Prevention:** Always wait 20-30 seconds after starting SLAM before starting Nav2, and set initial pose after Nav2 starts.
-
----
-
-#### 7. Robot Not Moving / Explorer Not Finding Frontiers
+#### 10. Robot not moving / explorer not finding frontiers
 
 **Cause:** System still initializing, or map too small.
 
-**Solution:**
+**Fix:**
 
-1. Wait 60-90 seconds total from startup
-2. Check explorer status: Should see `[INFO] [explore_node]: Exploration started`
-3. Check goals: `ros2 topic echo /goal_pose` (should see goals being sent)
-4. Check Nav2: `ros2 service list | grep lifecycle` (should see Nav2 services)
-5. Wait for map to build - explorer needs some map data before finding frontiers
-6. Verify initial pose is set in RViz
+- Wait 60–90 seconds total from startup (robot + SLAM + Nav2 + explorer).
+- Check explorer status:
+  - Look for `[INFO] [explore_node]: Exploration started`
+- Check goals:
+  - `ros2 topic echo /goal_pose`
+- Check Nav2 is up:
+  - `ros2 node list | grep nav2`
+- Check TF is valid:
+  - `ros2 run tf2_ros tf2_echo map odom`
+  - `ros2 run tf2_ros tf2_echo odom base_footprint`
+- Ensure the map has some free space and unknown space (explorer needs frontiers).
 
 ---
 
-#### 8. Two Maps Showing in RViz (Default Test Map + SLAM Map)
+#### 11. Two maps showing in RViz (static map + SLAM map)
 
 **Cause:** Nav2 is loading a default static map file, and SLAM Toolbox is also publishing its live map. Both appear in RViz.
 
-**Solution:**
+**Fix:**
 
-1. **Option A: Hide static map in RViz:**
-   - In RViz, find the "Map" display (there may be two)
-   - Disable/hide the one showing the default test map
-   - Keep the one showing the live SLAM map
-
-2. **Option B: Use only SLAM map:**
-   - In RViz, remove the Map display that's showing the static map
-   - Keep only the Map display subscribed to `/map` (from SLAM Toolbox)
+- Hide the static map display in RViz (keep the live `/map` display), or
+- Use the SLAM Nav2 launch (`navigation2_slam.launch.py`) so Nav2 does not load a static map.
 
 **Note:** When doing SLAM/exploration, you typically want to use the live map from SLAM Toolbox, not a static map file.
 
 ---
 
-#### 9. Odometry Not Publishing (`/odom` topic exists but no data)
+#### 12. Odometry not publishing (`/odom` exists but no data)
 
 **Cause:** Odometry needs robot movement to initialize, or parameters not loaded.
 
-**Solution:**
+**Fix:**
 
-1. Move robot slightly:
+- Move the robot slightly:
 
-   ```bash
-   ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
-   ```
+  ```bash
+  ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
+  ```
 
-2. Check odometry: `ros2 topic echo /odom --once`
-
-3. If still not working, restart robot launch on the robot
+- Check odometry:
+  - `ros2 topic echo /odom --once`
+- If still not working, restart robot bringup on the robot (`robot.launch.py`) and re-check `/odom`.
 
 **Check:** `ros2 topic list | grep odom` - topic should exist and be publishing data.
 
