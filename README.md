@@ -1,4 +1,4 @@
-# TurtleBot3 Workspace - Autonomous Exploration Setup
+# Autonomous Navigation Systems: Central Computer - Autonomous Exploration Setup
 
 This workspace contains editable TurtleBot3 packages for ROS 2 Humble, configured for autonomous exploration and mapping with Nav2, SLAM Toolbox, and Explore Lite.
 
